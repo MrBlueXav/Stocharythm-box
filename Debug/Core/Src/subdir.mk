@@ -15,17 +15,6 @@ C_SRCS += \
 ../Core/Src/system_stm32f4xx.c \
 ../Core/Src/test_sound_generator.c 
 
-OBJS += \
-./Core/Src/audio_play.o \
-./Core/Src/gpio.o \
-./Core/Src/main.o \
-./Core/Src/stm32f4xx_hal_msp.o \
-./Core/Src/stm32f4xx_it.o \
-./Core/Src/syscalls.o \
-./Core/Src/sysmem.o \
-./Core/Src/system_stm32f4xx.o \
-./Core/Src/test_sound_generator.o 
-
 C_DEPS += \
 ./Core/Src/audio_play.d \
 ./Core/Src/gpio.d \
@@ -36,6 +25,17 @@ C_DEPS += \
 ./Core/Src/sysmem.d \
 ./Core/Src/system_stm32f4xx.d \
 ./Core/Src/test_sound_generator.d 
+
+OBJS += \
+./Core/Src/audio_play.o \
+./Core/Src/gpio.o \
+./Core/Src/main.o \
+./Core/Src/stm32f4xx_hal_msp.o \
+./Core/Src/stm32f4xx_it.o \
+./Core/Src/syscalls.o \
+./Core/Src/sysmem.o \
+./Core/Src/system_stm32f4xx.o \
+./Core/Src/test_sound_generator.o 
 
 
 # Each subdirectory must supply rules for building sources it contributes

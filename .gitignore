@@ -4,3 +4,5 @@
 *.cyclo
 *.list
 *.elf
+*.map
+/Release/
