@@ -13,7 +13,7 @@
 #include <stdint.h>
 
 /*-----------------------------------------------------------------*/
-void soundGeneratorInit(void);
+void SoundGeneratorInit(void);
 void make_test_sound0(uint16_t *buf, uint16_t length);
 
 /*-------------------------------------------------------------------------------------*/

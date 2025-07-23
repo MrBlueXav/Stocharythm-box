@@ -1,0 +1,6 @@
+*.o
+*.d
+*.su
+*.cyclo
+*.list
+*.elf

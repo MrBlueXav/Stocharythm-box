@@ -61,7 +61,7 @@ static float OpSampleCompute0(Oscillator_t0 *op) // accurate sine waveform
 }
 
 /*----------------------------------------------------------------------------------------------*/
-void soundGeneratorInit(void)
+void SoundGeneratorInit(void)
 {
 	osc_init0(&oscillo, 0.9, 440);
 	osc_init0(&vibr_lfo, 0.1, 4);

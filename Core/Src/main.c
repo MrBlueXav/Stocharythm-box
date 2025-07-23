@@ -18,10 +18,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "i2c.h"
-#include "i2s.h"
-#include "rng.h"
-#include "spi.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -96,11 +92,6 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_RNG_Init();
-  MX_I2C1_Init();
-  MX_I2S2_Init();
-  MX_I2S3_Init();
-  MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
 
 	/* Configure LED3, LED4, LED5 and LED6 */
@@ -115,7 +106,7 @@ int main(void)
 	/* Turn ON LED4: start of application */
 	BSP_LED_On(LED4);
 
-	soundGeneratorInit();
+	SoundGeneratorInit();
 	AudioInit();
 
   /* USER CODE END 2 */
