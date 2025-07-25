@@ -153,7 +153,7 @@ uint8_t _ITCMRAM_ Process_audio(void) {
 			//cyc_count_reset();
 			BSP_LED_On(LED3);
 
-			make_test_sound0(&audio_buffer[0], AUDIO_BUFFER_SIZE / 4);
+			MakeSound(&audio_buffer[0], AUDIO_BUFFER_SIZE / 4);
 			state = BUFFER_OFFSET_NONE;
 
 			/* Clean Data Cache to update the content of the SRAM */
@@ -167,7 +167,7 @@ uint8_t _ITCMRAM_ Process_audio(void) {
 			//cyc_count_reset();
 			BSP_LED_On(LED6);
 
-			make_test_sound0(&audio_buffer[AUDIO_BUFFER_SIZE / 2],
+			MakeSound(&audio_buffer[AUDIO_BUFFER_SIZE / 2],
 			AUDIO_BUFFER_SIZE / 4);
 			state = BUFFER_OFFSET_NONE;
 

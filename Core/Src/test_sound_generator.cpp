@@ -8,13 +8,20 @@
 /***************************** Very simple test sound functions **********************************/
 /************************************************************************************************/
 
-
 #include "test_sound_generator.h"
 #include "constants.h"
 #include <math.h>
 
+#include "daisysp.h"
+
+// Set max delay time to 0.75 of samplerate.
+#define MAX_DELAY static_cast<size_t>(48000 * 0.3f)
+
+using namespace daisysp;
+
 /*----------------------------------------------------------------------------------------------*/
-typedef struct {
+typedef struct
+{
 	float amp;	// should be <= 1 for normal sound output
 	float last_amp;
 	float freq;	// Hertz
@@ -27,11 +34,18 @@ typedef struct {
 } Oscillator_t0;
 
 /*----------------------------------------------------------------------------------------------*/
+static DelayLine<float, MAX_DELAY>dell;
+static DelayLine<float, MAX_DELAY>delr;
 static Oscillator_t0 vibr_lfo;
 static Oscillator_t0 oscillo;
+static float feedback = 0.2f;
+static float currentDelay, delayTarget;
+
+void GetDelaySample(float &outl, float &outr, float inl, float inr);
 
 /*----------------------------------------------------------------------------------------------*/
-static void osc_init0(Oscillator_t0 *op, float amp, float freq) {
+static void osc_init0(Oscillator_t0 *op, float amp, float freq)
+{
 	op->amp = amp;
 	op->last_amp = amp;
 	op->freq = freq;
@@ -41,7 +55,8 @@ static void osc_init0(Oscillator_t0 *op, float amp, float freq) {
 	op->mul = 1;
 }
 /*----------------------------------------------------------------------------------------------*/
-static void OpSetFreq0(Oscillator_t0 *op, float f) {
+static void OpSetFreq0(Oscillator_t0 *op, float f)
+{
 	op->freq = f;
 }
 
@@ -61,10 +76,18 @@ static float OpSampleCompute0(Oscillator_t0 *op) // accurate sine waveform
 }
 
 /*----------------------------------------------------------------------------------------------*/
-void SoundGeneratorInit(void)
+extern "C" void SoundGeneratorInit(void)
 {
 	osc_init0(&oscillo, 0.9, 440);
 	osc_init0(&vibr_lfo, 0.1, 4);
+	dell.Init();
+	delr.Init();
+
+	//delay parameters
+	feedback = 0.2f;
+	currentDelay = delayTarget = 48000 * 0.3f;
+	dell.SetDelay(48000 * 0.2f);
+	delr.SetDelay(48000 * 0.3f);
 }
 
 /*-------------------------------------------------------------------
@@ -72,7 +95,7 @@ void SoundGeneratorInit(void)
  * lenght : number of frames to be computed
  *
  * ---------------------------*/
-void make_test_sound0(uint16_t *buf, uint16_t length) //
+extern "C" void MakeSound(uint16_t *buf, uint16_t length) //
 {
 
 	uint16_t pos;
@@ -84,7 +107,8 @@ void make_test_sound0(uint16_t *buf, uint16_t length) //
 
 	outp = buf;
 
-	for (pos = 0; pos < length; pos++) {
+	for (pos = 0; pos < length; pos++)
+	{
 
 		/*--- Generate waveform ---*/
 		/*--- compute vibrato modulation ---*/
@@ -92,7 +116,7 @@ void make_test_sound0(uint16_t *buf, uint16_t length) //
 		OpSetFreq0(&oscillo, f1);
 		y = OpSampleCompute0(&oscillo);
 
-		yL = yR = y;
+		GetDelaySample(yL, yR, y, y);
 
 		/*--- clipping ---*/
 		yL = (yL > 1.0f) ? 1.0f : yL; //clip too loud left samples
@@ -110,4 +134,19 @@ void make_test_sound0(uint16_t *buf, uint16_t length) //
 		*outp++ = valueR; // right channel sample
 	}
 
+}
+
+void GetDelaySample(float &outl, float &outr, float inl, float inr)
+{
+	fonepole(currentDelay, delayTarget, .00007f);
+	//delr.SetDelay(currentDelay);
+	//dell.SetDelay(currentDelay);
+	outl = dell.Read();
+	outr = delr.Read();
+
+	dell.Write((feedback * outl) + inl);
+	outl = (feedback * outl) + ((1.0f - feedback) * inl);
+
+	delr.Write((feedback * outr) + inr);
+	outr = (feedback * outr) + ((1.0f - feedback) * inr);
 }
