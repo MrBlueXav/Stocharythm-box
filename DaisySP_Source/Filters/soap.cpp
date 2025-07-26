@@ -24,10 +24,10 @@ void Soap::Init(float sample_rate)
 void Soap::Process(float in)
 {
     // recalculate the coefficients, later move this to a lookup table
-    float d = -std::cos(2.0 * PI * (soap_center_freq_ / sr_));
+    float d = -cosf(2.0 * PI * (soap_center_freq_ / sr_));
 
     // tangent bandwidth
-    float tf = std::tan(PI * (soap_bandwidth_ / sr_));
+    float tf = tanf(PI * (soap_bandwidth_ / sr_));
 
     // coefficient
     float c = (tf - 1.0) / (tf + 1.0);

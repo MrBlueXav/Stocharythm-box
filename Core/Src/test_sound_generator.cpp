@@ -1,8 +1,9 @@
 /*-----------------------------------------------------------------
- * test_sound_generator.c
+ *	test_sound_generator.cpp
  *
- *  Created on: Nov 9, 2023
- *      Author: Xavier Halgand
+ *	Created on: Nov 9, 2023
+ *	Modified : july 2025
+ * 	Author: Xavier Halgand
  *---------------------------------------------------------------------*/
 
 /***************************** Very simple test sound functions **********************************/
@@ -15,7 +16,7 @@
 #include "daisysp.h"
 
 // Set max delay time to 0.75 of samplerate.
-#define MAX_DELAY static_cast<size_t>(48000 * 0.3f)
+#define MAX_DELAY static_cast<size_t>(SAMPLERATE * 0.3f)
 
 using namespace daisysp;
 
@@ -36,12 +37,12 @@ typedef struct
 /*----------------------------------------------------------------------------------------------*/
 static DelayLine<float, MAX_DELAY>dell;
 static DelayLine<float, MAX_DELAY>delr;
-static Oscillator_t0 vibr_lfo;
-static Oscillator_t0 oscillo;
-static float feedback = 0.2f;
-static float currentDelay, delayTarget;
+static Oscillator_t0 _CCM_ vibr_lfo;
+static Oscillator_t0 _CCM_ oscillo;
+static float feedback, currentDelay, delayTarget;
 
-void GetDelaySample(float &outl, float &outr, float inl, float inr);
+/*----------------------------------------------------------------------------------------------*/
+static void GetDelaySample(float &outl, float &outr, float inl, float inr);
 
 /*----------------------------------------------------------------------------------------------*/
 static void osc_init0(Oscillator_t0 *op, float amp, float freq)
@@ -85,16 +86,16 @@ extern "C" void SoundGeneratorInit(void)
 
 	//delay parameters
 	feedback = 0.2f;
-	currentDelay = delayTarget = 48000 * 0.3f;
-	dell.SetDelay(48000 * 0.2f);
-	delr.SetDelay(48000 * 0.3f);
+	currentDelay = delayTarget = SAMPLERATE * 0.3f;
+	dell.SetDelay(SAMPLERATE * 0.2f);
+	delr.SetDelay(SAMPLERATE * 0.3f);
 }
 
 /*-------------------------------------------------------------------
  * buf : audio buffer pointer which contains frames. One frame is one left 16 bits sample + one right 16 bits sample (32 bits)
  * lenght : number of frames to be computed
  *
- * ---------------------------*/
+ * ----------------------------------------------------------------------------------------------------------------------------*/
 extern "C" void MakeSound(uint16_t *buf, uint16_t length) //
 {
 
@@ -112,7 +113,7 @@ extern "C" void MakeSound(uint16_t *buf, uint16_t length) //
 
 		/*--- Generate waveform ---*/
 		/*--- compute vibrato modulation ---*/
-		f1 = 440 * (1 + OpSampleCompute0(&vibr_lfo));
+		f1 = 440.0f * (1 + OpSampleCompute0(&vibr_lfo));
 		OpSetFreq0(&oscillo, f1);
 		y = OpSampleCompute0(&oscillo);
 
@@ -136,6 +137,7 @@ extern "C" void MakeSound(uint16_t *buf, uint16_t length) //
 
 }
 
+/*----------------------------------------------------------------------------------------------*/
 void GetDelaySample(float &outl, float &outr, float inl, float inr)
 {
 	fonepole(currentDelay, delayTarget, .00007f);

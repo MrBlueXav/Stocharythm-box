@@ -16,7 +16,7 @@ void Resonator::Init(float position, int resolution, float sample_rate)
 
     for(int i = 0; i < resolution; ++i)
     {
-        mode_amplitude_[i] = cos(position * TWOPI_F) * 0.25f;
+        mode_amplitude_[i] = cosf(position * TWOPI_F) * 0.25f;
     }
 
     for(int i = 0; i < kMaxNumModes / kModeBatchSize; ++i)
@@ -152,7 +152,7 @@ float Resonator::CalcStiff(float sig)
         sig -= .9f;
         sig *= 10; // div by .1
         sig *= sig;
-        sig = 1.5 - cos(sig * PI_F) * .5f;
+        sig = 1.5 - cosf(sig * PI_F) * .5f;
     }
     return sig;
 }

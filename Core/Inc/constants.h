@@ -14,7 +14,8 @@ extern "C" {
 #endif
 
 /*****************************************************************************************************************/
-#define AUDIO_BUFFER_SIZE       1024 /* AUDIO_BUFFER_SIZE (in bytes) must be a multiple of 8   */
+#define AUDIO_BUFFER_SIZE_IN_BYTES 		2048 /* AUDIO_BUFFER_SIZE (in bytes) must be a multiple of 8   */
+#define AUDIO_BUFFER_SIZE       		(AUDIO_BUFFER_SIZE_IN_BYTES / 2) /* AUDIO_BUFFER_SIZE (in 16bits words)  */
 
 #define SAMPLERATE              48000 // Don't modify !
 
@@ -38,6 +39,7 @@ extern "C" {
 //#define _ITCMRAM_				__attribute__((section(".itcm_text")))
 #define	_ITCMRAM_
 #define _DTCMRAM_
+#define _CCM_					__attribute__((section(".ccmram"))) // for use of CCM RAM (64kB)
 
 /******************************************************************************************************************/
 /* Align X to 4 bytes */

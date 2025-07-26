@@ -177,7 +177,7 @@ float AnalogSnareDrum::Process(bool trigger)
 
         shell += gain[i]
                  * (sustain_
-                        ? sin(phase_[i] * TWOPI_F) * sustain_gain_value * 0.25f
+                        ? sinf(phase_[i] * TWOPI_F) * sustain_gain_value * 0.25f
                         : resonator_[i].Band() + excitation * exciter_leak);
     }
     shell = SoftClip(shell);
