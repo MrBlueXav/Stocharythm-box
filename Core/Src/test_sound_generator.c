@@ -1,8 +1,9 @@
 /*-----------------------------------------------------------------
- * test_sound_generator.c
+ * 	test_sound_generator.c
  *
  *  Created on: Nov 9, 2023
- *      Author: Xavier Halgand
+ *	Modified : 26/07/2025
+ *  Author: Xavier Halgand
  *---------------------------------------------------------------------*/
 
 /***************************** Very simple test sound functions **********************************/
@@ -10,8 +11,15 @@
 
 
 #include "test_sound_generator.h"
-#include "constants.h"
 #include <math.h>
+
+#define M_PI_       3.14159265358979323846
+
+
+/************** Adjust samplerate here : *********************/
+#define SR			48000.0
+/**************************************************************/
+
 
 /*----------------------------------------------------------------------------------------------*/
 typedef struct {
@@ -50,13 +58,13 @@ static float OpSampleCompute0(Oscillator_t0 *op) // accurate sine waveform
 {
 	float z;
 
-	while (op->phase >= _2PI) // keep phase in [0, 2pi]
-		op->phase -= _2PI;
+	while (op->phase >= 2 * M_PI_) // keep phase in [0, 2pi]
+		op->phase -= 2 * M_PI_;
 
 	z = sinf(op->phase);
 	op->out = op->amp * z;
 
-	op->phase += _2PI * Ts * op->freq; // increment phase
+	op->phase += 2 * M_PI_ / SR * op->freq; // increment phase
 	return op->out;
 }
 
@@ -72,7 +80,7 @@ void SoundGeneratorInit(void)
  * lenght : number of frames to be computed
  *
  * ---------------------------*/
-void make_test_sound0(uint16_t *buf, uint16_t length) //
+void make_test_sound(uint16_t *buf, uint16_t length) //
 {
 
 	uint16_t pos;
@@ -88,7 +96,7 @@ void make_test_sound0(uint16_t *buf, uint16_t length) //
 
 		/*--- Generate waveform ---*/
 		/*--- compute vibrato modulation ---*/
-		f1 = 440 * (1 + OpSampleCompute0(&vibr_lfo));
+		f1 = 440.0f * (1 + OpSampleCompute0(&vibr_lfo));
 		OpSetFreq0(&oscillo, f1);
 		y = OpSampleCompute0(&oscillo);
 
