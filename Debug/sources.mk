@@ -40,9 +40,24 @@ CPP_DEPS :=
 SUBDIRS := \
 Core/Src \
 Core/Startup \
+DaisySP_Source/Control \
+DaisySP_Source/Drums \
+DaisySP_Source/Dynamics \
+DaisySP_Source/Effects \
+DaisySP_Source/Filters \
+DaisySP_Source/Noise \
+DaisySP_Source/PhysicalModeling \
+DaisySP_Source/Sampling \
+DaisySP_Source/Synthesis \
+DaisySP_Source/Utility \
 Drivers/BSP/Components/cs43l22 \
 Drivers/BSP/Components/lis302dl \
 Drivers/BSP/Components/lis3dsh \
 Drivers/BSP/STM32F4-Discovery \
 Drivers/STM32F4xx_HAL_Driver/Src \
+Middlewares/ST/STM32_USB_Host_Library/Class/HID/Src \
+Middlewares/ST/STM32_USB_Host_Library/Core/Src \
+PDM2PCM/App \
+USB_HOST/App \
+USB_HOST/Target \
 
