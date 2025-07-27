@@ -62,6 +62,8 @@ void MX_USB_HOST_Process(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+/* Implement your write code here, this is used by puts and printf for example */
 int __io_putchar(int ch)
 {
 	while (!(USART2->SR & USART_SR_TXE))
@@ -78,9 +80,9 @@ int _write(int32_t file, uint8_t *ptr, int32_t len)
 	{
 		__io_putchar(*(ptr++));
 	}
-	/* Implement your write code here, this is used by puts and printf for example */
 	return len;
 }
+
 /* USER CODE END 0 */
 
 /**
