@@ -4,10 +4,11 @@
  * @file           : main.c
  * @brief          : Main program body
  ******************************************************************************
- * @attention
- *
- * Copyright (c) 2025 STMicroelectronics.
- * All rights reserved.
+ * @attention		SynthF4
+ * 					A synthesizer platform for STM32F407 Discovery Kit board
+ * 					(by STMicroelectronics)
+ * 					July 2025
+ * 					Xavier Halgand aka MrBlueXav (Github)
  *
  * This software is licensed under terms that can be found in the LICENSE file
  * in the root directory of this software component.
@@ -63,7 +64,7 @@ void MX_USB_HOST_Process(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-/* Implement your write code here, this is used by puts and printf for example */
+/* Retarget printf () to USART2 */
 int __io_putchar(int ch)
 {
 	while (!(USART2->SR & USART_SR_TXE))

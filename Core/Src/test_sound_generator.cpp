@@ -15,7 +15,7 @@
 
 #include "daisysp.h"
 
-// Set max delay time to 0.75 of samplerate.
+// Set max delay time to 0.3 of samplerate.
 #define MAX_DELAY static_cast<size_t>(SAMPLERATE * 0.3f)
 
 using namespace daisysp;
@@ -23,14 +23,14 @@ using namespace daisysp;
 /*----------------------------------------------------------------------------------------------*/
 typedef struct
 {
-	float amp;	// should be <= 1 for normal sound output
+	float amp;		// should be <= 1 for normal sound output
 	float last_amp;
-	float freq;	// Hertz
+	float freq;		// Hertz
 	float phase;	// radians
-	float phi0;	// radians
+	float phi0;		// radians
 	float modInd;	// Modulation Index for FM
-	float mul;	// pitch frequency multiplier
-	float out;	// output sample in [-1, 1]
+	float mul;		// pitch frequency multiplier
+	float out;		// output sample in [-1, 1]
 
 } Oscillator_t0;
 
@@ -134,15 +134,11 @@ extern "C" void MakeSound(uint16_t *buf, uint16_t length) //
 		*outp++ = valueL; // left channel sample
 		*outp++ = valueR; // right channel sample
 	}
-
 }
 
 /*----------------------------------------------------------------------------------------------*/
 void GetDelaySample(float &outl, float &outr, float inl, float inr)
 {
-	fonepole(currentDelay, delayTarget, .00007f);
-	//delr.SetDelay(currentDelay);
-	//dell.SetDelay(currentDelay);
 	outl = dell.Read();
 	outr = delr.Read();
 

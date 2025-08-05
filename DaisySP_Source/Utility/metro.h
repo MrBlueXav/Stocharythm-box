@@ -30,7 +30,8 @@ class Metro
     */
     void Init(float freq, float sample_rate);
 
-    /** checks current state of Metro object and updates state if necesary.
+    /** checks current state of Metro object and updates state if necessary.
+     *  Returns 0 or 1.
     */
     uint8_t Process();
 
