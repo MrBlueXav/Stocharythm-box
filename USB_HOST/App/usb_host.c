@@ -25,7 +25,7 @@
 #include "usbh_hid.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "bruitenkor.h"
 /* USER CODE END Includes */
 
 /* USER CODE BEGIN PV */
@@ -63,6 +63,9 @@ void USBH_HID_EventCallback(USBH_HandleTypeDef *phost)
 	HID_KEYBD_Info_TypeDef *keybd_info;
 	//printf("key %c\n", USBH_HID_GetASCIICode(USBH_HID_GetKeybdInfo(phost)));
 	keybd_info = USBH_HID_GetKeybdInfo(phost);
+	uint8_t key = USBH_HID_GetASCIICode(keybd_info);
+	InterpretKey(key);
+
 	printf("| state = %d | ", keybd_info->state);
 	printf("lctrl = %d | ", keybd_info->lctrl);
 	printf("lshift = %d | ", keybd_info->lshift);
@@ -73,7 +76,7 @@ void USBH_HID_EventCallback(USBH_HandleTypeDef *phost)
 	printf("ralt = %d | ", keybd_info->ralt);
 	printf("rgui = %d ||\r\n ", keybd_info->rgui);
 	printf("keys = [ 0x%.2X, 0x%.2X, 0x%.2X, 0x%.2X, 0x%.2X 0x%.2X, ]\r\n", keybd_info->keys[0], keybd_info->keys[1],keybd_info->keys[2],keybd_info->keys[3],keybd_info->keys[4],keybd_info->keys[5]);
-	printf("ASCII key =  %c\r\n", USBH_HID_GetASCIICode(keybd_info));
+	printf("ASCII key =  %c\r\n", key);
 	printf("----------------------------------------------------\r\n");
 }
 /* USER CODE END 1 */

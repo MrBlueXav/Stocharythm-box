@@ -151,7 +151,7 @@ uint8_t _ITCMRAM_ Process_audio(void) {
 		/* 1st half buffer played; so fill it and continue playing from bottom*/
 		if (state == BUFFER_OFFSET_HALF) {
 			//cyc_count_reset();
-			BSP_LED_On(LED3);
+			BSP_LED_Off(LED3);
 
 			MakeSound(&audio_buffer[0], AUDIO_BUFFER_SIZE / 4);
 			state = BUFFER_OFFSET_NONE;
@@ -159,13 +159,13 @@ uint8_t _ITCMRAM_ Process_audio(void) {
 			/* Clean Data Cache to update the content of the SRAM */
 			//SCB_CleanDCache_by_Addr((uint32_t*) &buff[0], AUDIO_BUFFER_SIZE / 2);
 			//cyc_count_print();
-			BSP_LED_Off(LED3);
+			BSP_LED_On(LED3);
 		}
 
 		/* 2nd half buffer played; so fill it and continue playing from top */
 		if (state == BUFFER_OFFSET_FULL) {
 			//cyc_count_reset();
-			BSP_LED_On(LED6);
+			BSP_LED_Off(LED3);
 
 			MakeSound(&audio_buffer[AUDIO_BUFFER_SIZE / 2],
 			AUDIO_BUFFER_SIZE / 4);
@@ -174,7 +174,7 @@ uint8_t _ITCMRAM_ Process_audio(void) {
 			/* Clean Data Cache to update the content of the SRAM */
 			//SCB_CleanDCache_by_Addr((uint32_t*) &buff[AUDIO_BUFFER_SIZE / 2], AUDIO_BUFFER_SIZE / 2);
 			//cyc_count_print();
-			BSP_LED_Off(LED6);
+			BSP_LED_On(LED3);
 		}
 
 		//BSP_LED_On(LED3);
@@ -214,7 +214,6 @@ void BSP_AUDIO_OUT_TransferComplete_CallBack(void) {
  */
 void BSP_AUDIO_OUT_HalfTransfer_CallBack(void) {
 	if (audio_state == AUDIO_STATE_PLAYING) {
-		//BSP_LED_On(LED6);
 		/* allows Process_audio() to refill 1st part of the buffer  */
 		state = BUFFER_OFFSET_HALF;
 	}

@@ -26,7 +26,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stm32f4_discovery.h"
-#include "test_sound_generator.h"
+#include "bruitenkor.h"
 #include "audio_play.h"
 #include <stdio.h>
 /* USER CODE END Includes */

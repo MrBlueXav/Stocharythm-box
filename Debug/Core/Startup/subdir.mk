@@ -16,7 +16,7 @@ OBJS += \
 
 # Each subdirectory must supply rules for building sources it contributes
 Core/Startup/%.o: ../Core/Startup/%.s Core/Startup/subdir.mk
-	arm-none-eabi-gcc -mcpu=cortex-m4 -g3 -DDEBUG -c -I"D:/STM32CubeMX/SynthF4/Drivers/BSP/STM32F4-Discovery" -I"D:/STM32CubeMX/SynthF4/Drivers/BSP/Components/Common" -I"D:/STM32CubeMX/SynthF4/Drivers/BSP/Components/cs43l22" -I"D:/STM32CubeMX/SynthF4/Drivers/BSP/Components/lis302dl" -I"D:/STM32CubeMX/SynthF4/Drivers/BSP/Components/lis3dsh" -I"D:/STM32CubeMX/SynthF4/Middlewares/ST/STM32_Audio/Addons/PDM/Inc" -I"D:/STM32CubeMX/SynthF4/Drivers/BSP/Components/PDM/Inc" -I"D:/STM32CubeMX/SynthF4/DaisySP_Source" -I"D:/STM32CubeMX/SynthF4/DaisySP_Source/Utility" -x assembler-with-cpp -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "$@" "$<"
+	arm-none-eabi-gcc -mcpu=cortex-m4 -g3 -DDEBUG -DAZERTY_KEYBOARD -c -I"D:/STM32CubeMX/SynthF4/Drivers/BSP/STM32F4-Discovery" -I"D:/STM32CubeMX/SynthF4/Drivers/BSP/Components/Common" -I"D:/STM32CubeMX/SynthF4/Drivers/BSP/Components/cs43l22" -I"D:/STM32CubeMX/SynthF4/Drivers/BSP/Components/lis302dl" -I"D:/STM32CubeMX/SynthF4/Drivers/BSP/Components/lis3dsh" -I"D:/STM32CubeMX/SynthF4/Middlewares/ST/STM32_Audio/Addons/PDM/Inc" -I"D:/STM32CubeMX/SynthF4/Drivers/BSP/Components/PDM/Inc" -I"D:/STM32CubeMX/SynthF4/DaisySP_Source" -I"D:/STM32CubeMX/SynthF4/DaisySP_Source/Utility" -x assembler-with-cpp -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "$@" "$<"
 
 clean: clean-Core-2f-Startup
 
