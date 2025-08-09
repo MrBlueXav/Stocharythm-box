@@ -1,0 +1,166 @@
+/*
+ * sequencer.cpp
+ *
+ *  Created on: Aug 7, 2025
+ *      Author: Xavier Halgand
+ */
+/*---------------------------------------------------------------------------------------------*/
+#include "sequencer.h"
+#include "bruitenkor.hpp"
+#include "objectpool.hpp"
+#include "rng.h"
+
+#include <stdio.h>
+#include <inttypes.h> // pour PRIu32
+
+/*---------------------------------------------------------------------------------------------*/
+MIDIevent ev1(1, 0x09, 0x90, 57, 127); // At tick 1, Note On A3 velocity = 127
+MIDIevent ev2(333, 0x08, 0x80, 57, 127); // At tick 333, Note Off A3 velocity = 127
+
+ObjectPool<MIDIevent, 200> pool;
+
+/*---------------------------------------------------------------------------------------------*/
+void EventSequencer::Init(float sr, uint16_t reso, uint32_t max_len) {
+	sample_rate_ = sr;
+	resolution_ = reso; // reso
+	max_len_ = max_len;
+	loop_len_ = 1000; // 1000 ticks
+	sample_counter_ = 1;
+	tick_counter_ = 1;
+	event_counter_ = 0;
+	max_event_ = 200;
+	gate_ = false;
+	event_list_.clear();
+	pool.clear();
+
+}
+
+/*---------------------------------------------------------------------------------------------*/
+void EventSequencer::Clear() {
+	event_list_.clear();
+	pool.clear();
+	event_counter_ = 0;
+}
+/*---------------------------------------------------------------------------------------------*/
+void EventSequencer::Add(MIDIevent *ev) {
+	if (event_counter_ < max_event_) {
+		event_list_.push_front(ev);
+		event_counter_++;
+	}
+}
+
+/*---------------------------------------------------------------------------------------------*/
+void EventSequencer::TimeSort() {
+	event_list_.sort([](MIDIevent *a, MIDIevent *b) {
+		return a->position < b->position;
+	});
+}
+
+/*---------------------------------------------------------------------------------------------*/
+void EventSequencer::CreatePattern(uint16_t evnb) {
+	event_list_.clear();
+	pool.clear();
+	event_counter_ = 0;
+	for (uint16_t i = 0; i < evnb; i++) {
+		auto x = (GetRandom32bits() % loop_len_) + 1;
+		printf("random position = %ld \r\n", x);
+		auto ev = pool.allocate(x, 0x09, 1, 2, 3);
+		Add(ev);
+		event_counter_++;
+	}
+	TimeSort();
+}
+
+/*---------------------------------------------------------------------------------------------*/
+void EventSequencer::AddOneEvent() {
+
+	if (event_counter_ < max_event_) {
+
+		auto x = (GetRandom32bits() % loop_len_) + 1;
+		auto ev = pool.allocate(x, 0x09, 1, 2, 3);
+		event_list_.push_front(ev);
+		printf("New event ! : position = %" PRIu32
+		" || type = %#04X || data1 = %u || data2 = %u || data3 = %u ||\r\n",
+				ev->position, ev->type, ev->data1, ev->data2, ev->data3);
+		TimeSort();
+		event_counter_++;
+	}
+}
+/*---------------------------------------------------------------------------------------------*/
+void EventSequencer::DisplayPattern() {
+
+	if (event_list_.empty()) {
+		printf("Pattern vide ! \r\n");
+		printf(
+				"---------------------------------------------------------------------------------\r\n");
+	} else {
+		for (auto ev : event_list_) {
+			if (ev == nullptr) {
+				printf("Event : null pointer ! \r\n");
+				continue;
+			}
+
+			printf("Event : position = %" PRIu32
+			" || type = %#04X || data1 = %u || data2 = %u || data3 = %u ||\r\n",
+					ev->position, ev->type, ev->data1, ev->data2, ev->data3);
+
+			printf(
+					"---------------------------------------------------------------------------------\r\n");
+		}
+	}
+}
+
+/*---------------------------------------------------------------------------------------------*/
+void EventSequencer::TickAction() {
+
+	for (auto ev : event_list_) {
+		if (ev->position > tick_counter_)	// event list is ordered !
+			break;
+		if (tick_counter_ == ev->position)
+			InterpretEvent(ev);
+	}
+}
+
+/*---------------------------------------------------------------------------------------------*/
+void EventSequencer::Process() {
+	//TestPrintCounters();
+
+	if (sample_counter_ == 1) // New tick !
+			{
+		/*..... Do something... */
+		TickAction();
+//		if (tick_counter_ == 1) {
+//			InterpretEvent(&ev1);
+//		}
+//		if (tick_counter_ == 333) {
+//			InterpretEvent(&ev2);
+//		}
+		/*....................*/
+		sample_counter_++;
+
+	} else {
+		if (sample_counter_ < resolution_)
+			sample_counter_++;
+		else {
+			sample_counter_ = 1;
+			if (tick_counter_ < loop_len_) {
+				tick_counter_++;
+			} else {
+				tick_counter_ = 1;
+			}
+		}
+
+	}
+}
+
+/*---------------------------------------------------------------------------------------------*/
+//bool EventSequencer::GateGetState()
+//{
+//
+//}
+/*---------------------------------------------------------------------------------------------*/
+void EventSequencer::TestPrintCounters() {
+	printf("samples = %d || ticks = %ld\r\n", sample_counter_, tick_counter_);
+}
+
+/*---------------------------------------------------------------------------------------------*/

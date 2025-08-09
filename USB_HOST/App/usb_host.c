@@ -66,16 +66,16 @@ void USBH_HID_EventCallback(USBH_HandleTypeDef *phost)
 	uint8_t key = USBH_HID_GetASCIICode(keybd_info);
 	InterpretKey(key);
 
-	printf("| state = %d | ", keybd_info->state);
-	printf("lctrl = %d | ", keybd_info->lctrl);
-	printf("lshift = %d | ", keybd_info->lshift);
-	printf("lalt = %d | ", keybd_info->lalt);
-	printf("lgui = %d || ", keybd_info->lgui);
-	printf("rctrl = %d | ", keybd_info->rctrl);
-	printf("rshift = %d | ", keybd_info->rshift);
-	printf("ralt = %d | ", keybd_info->ralt);
-	printf("rgui = %d ||\r\n ", keybd_info->rgui);
-	printf("keys = [ 0x%.2X, 0x%.2X, 0x%.2X, 0x%.2X, 0x%.2X 0x%.2X, ]\r\n", keybd_info->keys[0], keybd_info->keys[1],keybd_info->keys[2],keybd_info->keys[3],keybd_info->keys[4],keybd_info->keys[5]);
+//	printf("| state = %d | ", keybd_info->state);
+//	printf("lctrl = %d | ", keybd_info->lctrl);
+//	printf("lshift = %d | ", keybd_info->lshift);
+//	printf("lalt = %d | ", keybd_info->lalt);
+//	printf("lgui = %d || ", keybd_info->lgui);
+//	printf("rctrl = %d | ", keybd_info->rctrl);
+//	printf("rshift = %d | ", keybd_info->rshift);
+//	printf("ralt = %d | ", keybd_info->ralt);
+//	printf("rgui = %d ||\r\n ", keybd_info->rgui);
+//	printf("keys = [ 0x%.2X, 0x%.2X, 0x%.2X, 0x%.2X, 0x%.2X 0x%.2X, ]\r\n", keybd_info->keys[0], keybd_info->keys[1],keybd_info->keys[2],keybd_info->keys[3],keybd_info->keys[4],keybd_info->keys[5]);
 	printf("ASCII key =  %c\r\n", key);
 	printf("----------------------------------------------------\r\n");
 }

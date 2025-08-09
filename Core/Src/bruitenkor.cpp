@@ -6,14 +6,19 @@
  */
 
 #include "bruitenkor.h"
+#include "bruitenkor.hpp"
+#include "sequencer.h"
 #include "constants.h"
+#include "audio_play.h"
+
 #include <math.h>
 #include "daisysp.h"
 
 using namespace daisysp;
 
-enum Source
-{
+static float sample_rate = SAMPLERATE;
+
+enum Source {
 	NONE, WH_NOISE, PARTICLE, GRAIN_OSC, DUST, CK_NOISE, END
 };
 
@@ -22,18 +27,19 @@ static Particle _CCM_ particle;
 static GrainletOscillator _CCM_ gr_osc;
 static Dust _CCM_ dust;
 static ClockedNoise _CCM_ ck_noise;
+static Source source = WH_NOISE;
+static AdEnv ad1;
 static Adsr _CCM_ adsr1;
 static Adsr _CCM_ adsr2;
+static bool adsr1_gate;
+static bool adsr2_gate;
 static Svf _CCM_ filter;
 
-static float sample_rate = SAMPLERATE;
-static Source source = NONE;
+static EventSequencer seq;
 
 /*----------------------------------------------------------------------------------------------*/
-extern "C" void InterpretKey(uint8_t key)
-{
-	switch (key)
-	{
+void InterpretKey(uint8_t key) {
+	switch (key) {
 	case '0':
 		source = NONE;
 		break;
@@ -58,13 +64,53 @@ extern "C" void InterpretKey(uint8_t key)
 		source = CK_NOISE;
 		break;
 
+	case '+':
+		incVol();
+		break;
+
+	case '-':
+		decVol();
+		break;
+
+	case '*':
+		seq.CreatePattern(4);
+		seq.DisplayPattern();
+		break;
+
+	case '/':
+		seq.AddOneEvent();
+		break;
+
+	case '.':
+		seq.Clear();
+		break;
+
+	default:
+		break;
+	}
+}
+
+/*----------------------------------------------------------------------------------------------*/
+void InterpretEvent(MIDIevent *ev) {
+	switch ((ev->type) & 0x0F) {
+	case NoteOn:
+		adsr1.Retrigger(true);
+		adsr1_gate = true;
+		break;
+
+	case NoteOff:
+		//adsr1_gate = false;
+		break;
+
+	case ControlChange:
+		break;
+
 	default:
 		break;
 	}
 }
 /*----------------------------------------------------------------------------------------------*/
-extern "C" void SoundGeneratorInit(void)
-{
+void SoundGeneratorInit(void) {
 	w_noise.Init();
 	particle.Init(sample_rate);
 	gr_osc.Init(sample_rate);
@@ -73,18 +119,30 @@ extern "C" void SoundGeneratorInit(void)
 	dust.Init();
 	ck_noise.Init(sample_rate);
 	adsr1.Init(sample_rate);
+	adsr1_gate = false;
+	adsr1.SetTime(ADSR_SEG_ATTACK, 0.0f);
+	adsr1.SetTime(ADSR_SEG_DECAY, 0.03f);
+	adsr1.SetTime(ADSR_SEG_RELEASE, 0.01f);
+	adsr1.SetSustainLevel(0.f);
 	adsr2.Init(sample_rate);
+	adsr2_gate = false;
+
+	ad1.Init(sample_rate);
+	ad1.SetTime(ADENV_SEG_ATTACK, 0.0f);
+	ad1.SetTime(ADENV_SEG_DECAY, 0.03f);
+
 	filter.Init(sample_rate);
+	seq.Init(sample_rate);
 }
 
-/*-------------------------------------------------------------------
- * buf : audio buffer pointer which contains frames. One frame is one left 16 bits sample + one right 16 bits sample (32 bits)
- * lenght : number of frames to be computed
- *
- * ----------------------------------------------------------------------------------------------------------------------------*/
-extern "C" void MakeSound(uint16_t *buf, uint16_t length) //
-{
-
+/*----------------------------------------------------------------------------------------------*/
+void MakeSound(uint16_t *buf, uint16_t length) //
+		/*-------------------------------------------------------------------
+		 * buf : audio buffer pointer which contains frames. One frame is one left 16 bits sample + one right 16 bits sample (32 bits)
+		 * length : number of frames to be computed
+		 *
+		 * ----------------------------------------------------------------------------------------------------------------------------*/
+		{
 	uint16_t pos;
 	uint16_t *outp;
 	float y = 0;
@@ -94,13 +152,13 @@ extern "C" void MakeSound(uint16_t *buf, uint16_t length) //
 
 	outp = buf;
 
-	for (pos = 0; pos < length; pos++)
-	{
+	for (pos = 0; pos < length; pos++) {
+
+		seq.Process();
 
 		/*--- Generate waveform ---*/
-		switch (source)
-		{
-		case NONE :
+		switch (source) {
+		case NONE:
 			y = 0.f;
 			break;
 
@@ -127,6 +185,7 @@ extern "C" void MakeSound(uint16_t *buf, uint16_t length) //
 		default:
 			break;
 		}
+		y = y * adsr1.Process(adsr1_gate);
 
 		yL = yR = y;
 

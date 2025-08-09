@@ -64,7 +64,7 @@ class AdEnv
     inline void Trigger() { trigger_ = 1; }
     /** Sets the length of time (in seconds) for a specific segment. */
     inline void SetTime(uint8_t seg, float time) { segment_time_[seg] = time; }
-    /** Sets the amount of curve applied. A positve value will create a log
+    /** Sets the amount of curve applied. A positive value will create a log
         curve. Input range: -100 to 100.  (or more)
     */
     inline void SetCurve(float scalar) { curve_scalar_ = scalar; }

@@ -245,7 +245,7 @@ void incVol(void) {
 		uwVolume++;
 		BSP_AUDIO_OUT_SetVolume(uwVolume);
 	}
-	sprintf(string_message, "Volume is now : %lu", uwVolume);
+	printf("Volume is now : %lu\r\n", uwVolume);
 	//send_string_to_CM4(string_message);
 }
 
@@ -255,7 +255,7 @@ void decVol(void) {
 		uwVolume--;
 		BSP_AUDIO_OUT_SetVolume(uwVolume);
 	}
-	sprintf(string_message, "Volume is now : %lu", uwVolume);
+	printf("Volume is now : %lu\r\n", uwVolume);
 	//send_string_to_CM4(string_message);
 }
 

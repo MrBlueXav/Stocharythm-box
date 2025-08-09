@@ -9,16 +9,26 @@
 #define INC_BRUITENKOR_H_
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 #include <stdint.h>
 
+
 /*-----------------------------------------------------------------------------------------------------------*/
+
+//void InterpretEvent(Event_t* ev);
+
+
+
+
+
+
+//void InterpretEvent(Event_t* ev);
 void InterpretKey(uint8_t key);
 void SoundGeneratorInit(void);
 void MakeSound(uint16_t *buf, uint16_t length);
-
 
 /*-----------------------------------------------------------------------------------------------------------*/
 #ifdef __cplusplus
