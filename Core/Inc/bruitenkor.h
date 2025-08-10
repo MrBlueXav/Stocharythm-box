@@ -17,18 +17,10 @@ extern "C"
 
 
 /*-----------------------------------------------------------------------------------------------------------*/
-
-//void InterpretEvent(Event_t* ev);
-
-
-
-
-
-
-//void InterpretEvent(Event_t* ev);
 void InterpretKey(uint8_t key);
 void SoundGeneratorInit(void);
 void MakeSound(uint16_t *buf, uint16_t length);
+void PrintALine(void);
 
 /*-----------------------------------------------------------------------------------------------------------*/
 #ifdef __cplusplus

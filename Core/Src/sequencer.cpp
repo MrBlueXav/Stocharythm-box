@@ -6,7 +6,9 @@
  */
 /*---------------------------------------------------------------------------------------------*/
 #include "sequencer.h"
+#include "constants.h"
 #include "bruitenkor.hpp"
+#include "bruitenkor.h"
 #include "objectpool.hpp"
 #include "rng.h"
 
@@ -17,7 +19,7 @@
 MIDIevent ev1(1, 0x09, 0x90, 57, 127); // At tick 1, Note On A3 velocity = 127
 MIDIevent ev2(333, 0x08, 0x80, 57, 127); // At tick 333, Note Off A3 velocity = 127
 
-ObjectPool<MIDIevent, 200> pool;
+ObjectPool<MIDIevent, MAX_EVENT_NB> _CCM_ pool;
 
 /*---------------------------------------------------------------------------------------------*/
 void EventSequencer::Init(float sr, uint16_t reso, uint32_t max_len) {
@@ -28,11 +30,9 @@ void EventSequencer::Init(float sr, uint16_t reso, uint32_t max_len) {
 	sample_counter_ = 1;
 	tick_counter_ = 1;
 	event_counter_ = 0;
-	max_event_ = 200;
-	gate_ = false;
+	max_event_ = MAX_EVENT_NB;
 	event_list_.clear();
 	pool.clear();
-
 }
 
 /*---------------------------------------------------------------------------------------------*/
@@ -41,6 +41,16 @@ void EventSequencer::Clear() {
 	pool.clear();
 	event_counter_ = 0;
 }
+
+/*---------------------------------------------------------------------------------------------*/
+void EventSequencer::RandomizeVelo() {
+	for (auto ev : event_list_) {
+		auto v = (GetRandom32bits() % 83) + 45;
+		ev->data3 = v;
+	}
+
+}
+
 /*---------------------------------------------------------------------------------------------*/
 void EventSequencer::Add(MIDIevent *ev) {
 	if (event_counter_ < max_event_) {
@@ -63,10 +73,10 @@ void EventSequencer::CreatePattern(uint16_t evnb) {
 	event_counter_ = 0;
 	for (uint16_t i = 0; i < evnb; i++) {
 		auto x = (GetRandom32bits() % loop_len_) + 1;
-		printf("random position = %ld \r\n", x);
-		auto ev = pool.allocate(x, 0x09, 1, 2, 3);
+		auto v = (GetRandom32bits() % 83) + 45;
+		auto ev = pool.allocate(x, 0x09, 1, 2, v);
 		Add(ev);
-		event_counter_++;
+		//printf("random position = %ld \r\n", x);
 	}
 	TimeSort();
 }
@@ -77,37 +87,38 @@ void EventSequencer::AddOneEvent() {
 	if (event_counter_ < max_event_) {
 
 		auto x = (GetRandom32bits() % loop_len_) + 1;
-		auto ev = pool.allocate(x, 0x09, 1, 2, 3);
+		auto v = (GetRandom32bits() % 83) + 45;
+		auto ev = pool.allocate(x, 0x09, 1, 2, v);
 		event_list_.push_front(ev);
-		printf("New event ! : position = %" PRIu32
-		" || type = %#04X || data1 = %u || data2 = %u || data3 = %u ||\r\n",
-				ev->position, ev->type, ev->data1, ev->data2, ev->data3);
 		TimeSort();
 		event_counter_++;
+		printf("New event ! : position = %" PRIu32
+				" || type = %#04X || data1 = %u || data2 = %u || data3 = %u ||\r\n",
+						ev->position, ev->type, ev->data1, ev->data2, ev->data3);
+		printf(">>>>>>>  Number of Events : %u\r\n", event_counter_);
+		PrintALine();
 	}
 }
+
 /*---------------------------------------------------------------------------------------------*/
 void EventSequencer::DisplayPattern() {
 
 	if (event_list_.empty()) {
 		printf("Pattern vide ! \r\n");
-		printf(
-				"---------------------------------------------------------------------------------\r\n");
+
 	} else {
+		printf(">>>>>>>  Number of Events : %u\r\n", event_counter_);
 		for (auto ev : event_list_) {
 			if (ev == nullptr) {
 				printf("Event : null pointer ! \r\n");
 				continue;
 			}
-
 			printf("Event : position = %" PRIu32
 			" || type = %#04X || data1 = %u || data2 = %u || data3 = %u ||\r\n",
 					ev->position, ev->type, ev->data1, ev->data2, ev->data3);
-
-			printf(
-					"---------------------------------------------------------------------------------\r\n");
 		}
 	}
+	PrintALine();
 }
 
 /*---------------------------------------------------------------------------------------------*/
@@ -154,10 +165,7 @@ void EventSequencer::Process() {
 }
 
 /*---------------------------------------------------------------------------------------------*/
-//bool EventSequencer::GateGetState()
-//{
-//
-//}
+
 /*---------------------------------------------------------------------------------------------*/
 void EventSequencer::TestPrintCounters() {
 	printf("samples = %d || ticks = %ld\r\n", sample_counter_, tick_counter_);

@@ -21,7 +21,7 @@
 #include "usart.h"
 
 /* USER CODE BEGIN 0 */
-
+#include "retarget.h"
 /* USER CODE END 0 */
 
 UART_HandleTypeDef huart2;
@@ -51,6 +51,10 @@ void MX_USART2_UART_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART2_Init 2 */
+
+  /*############ Retarget printf and scanf to USART2 */
+  retargetInit( &huart2);
+  /*################################################ */
 
   /* USER CODE END USART2_Init 2 */
 

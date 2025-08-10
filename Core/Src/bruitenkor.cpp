@@ -28,14 +28,44 @@ static GrainletOscillator _CCM_ gr_osc;
 static Dust _CCM_ dust;
 static ClockedNoise _CCM_ ck_noise;
 static Source source = WH_NOISE;
-static AdEnv ad1;
+static float vol;
+static AdEnv _CCM_ ad1;
 static Adsr _CCM_ adsr1;
 static Adsr _CCM_ adsr2;
-static bool adsr1_gate;
-static bool adsr2_gate;
+static bool _CCM_ adsr1_gate;
+static bool _CCM_ adsr2_gate;
 static Svf _CCM_ filter;
 
-static EventSequencer seq;
+static _CCM_ EventSequencer seq;
+
+/*----------------------------------------------------------------------------------------------*/
+void SoundGeneratorInit(void) {
+
+	vol = 1.0f;
+
+	w_noise.Init();
+	particle.Init(sample_rate);
+	gr_osc.Init(sample_rate);
+	gr_osc.SetFreq(110.f);
+	gr_osc.SetFormantFreq(300.f);
+	dust.Init();
+	ck_noise.Init(sample_rate);
+	adsr1.Init(sample_rate);
+	adsr1_gate = false;
+	adsr1.SetTime(ADSR_SEG_ATTACK, 0.0f);
+	adsr1.SetTime(ADSR_SEG_DECAY, 0.03f);
+	adsr1.SetTime(ADSR_SEG_RELEASE, 0.01f);
+	adsr1.SetSustainLevel(0.f);
+	adsr2.Init(sample_rate);
+	adsr2_gate = false;
+
+	ad1.Init(sample_rate);
+	ad1.SetTime(ADENV_SEG_ATTACK, 0.0f);
+	ad1.SetTime(ADENV_SEG_DECAY, 0.03f);
+
+	filter.Init(sample_rate);
+	seq.Init(sample_rate);
+}
 
 /*----------------------------------------------------------------------------------------------*/
 void InterpretKey(uint8_t key) {
@@ -85,6 +115,14 @@ void InterpretKey(uint8_t key) {
 		seq.Clear();
 		break;
 
+	case 'd':
+		seq.DisplayPattern();
+		break;
+
+	case 'v':
+		seq.RandomizeVelo();
+		break;
+
 	default:
 		break;
 	}
@@ -94,6 +132,7 @@ void InterpretKey(uint8_t key) {
 void InterpretEvent(MIDIevent *ev) {
 	switch ((ev->type) & 0x0F) {
 	case NoteOn:
+		vol = (ev->data3) / 127.f;
 		adsr1.Retrigger(true);
 		adsr1_gate = true;
 		break;
@@ -108,31 +147,6 @@ void InterpretEvent(MIDIevent *ev) {
 	default:
 		break;
 	}
-}
-/*----------------------------------------------------------------------------------------------*/
-void SoundGeneratorInit(void) {
-	w_noise.Init();
-	particle.Init(sample_rate);
-	gr_osc.Init(sample_rate);
-	gr_osc.SetFreq(110.f);
-	gr_osc.SetFormantFreq(300.f);
-	dust.Init();
-	ck_noise.Init(sample_rate);
-	adsr1.Init(sample_rate);
-	adsr1_gate = false;
-	adsr1.SetTime(ADSR_SEG_ATTACK, 0.0f);
-	adsr1.SetTime(ADSR_SEG_DECAY, 0.03f);
-	adsr1.SetTime(ADSR_SEG_RELEASE, 0.01f);
-	adsr1.SetSustainLevel(0.f);
-	adsr2.Init(sample_rate);
-	adsr2_gate = false;
-
-	ad1.Init(sample_rate);
-	ad1.SetTime(ADENV_SEG_ATTACK, 0.0f);
-	ad1.SetTime(ADENV_SEG_DECAY, 0.03f);
-
-	filter.Init(sample_rate);
-	seq.Init(sample_rate);
 }
 
 /*----------------------------------------------------------------------------------------------*/
@@ -185,7 +199,7 @@ void MakeSound(uint16_t *buf, uint16_t length) //
 		default:
 			break;
 		}
-		y = y * adsr1.Process(adsr1_gate);
+		y = y * vol * adsr1.Process(adsr1_gate);
 
 		yL = yR = y;
 
@@ -204,3 +218,12 @@ void MakeSound(uint16_t *buf, uint16_t length) //
 		*outp++ = valueR; // right channel sample
 	}
 }
+
+/*----------------------------------------------------------------------------------------------*/
+void PrintALine(void) {
+	printf(
+			"--------------------------------------------------------------------------------\r\n");
+
+}
+
+//**********************************************************************************************
