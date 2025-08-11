@@ -10,18 +10,28 @@
 #include "sequencer.h"
 #include "constants.h"
 #include "audio_play.h"
+#include "command_parser.hpp"
 
 #include <math.h>
 #include "daisysp.h"
 
 using namespace daisysp;
 
-static float sample_rate = SAMPLERATE;
-
+//-----------------------------------------------------------------------------------------------
 enum Source {
 	NONE, WH_NOISE, PARTICLE, GRAIN_OSC, DUST, CK_NOISE, END
 };
 
+//-----------------------------------------------------------------------------------------------
+_CCM_ EventSequencer seq;
+
+// Command table provider from commands.cpp
+extern const CommandParser::Entry* getCommandTable(size_t &outSize);
+
+//-----------------------------------------------------------------------------------------------
+
+static float sample_rate = SAMPLERATE;
+static CommandParser parser;
 static WhiteNoise _CCM_ w_noise;
 static Particle _CCM_ particle;
 static GrainletOscillator _CCM_ gr_osc;
@@ -36,10 +46,13 @@ static bool _CCM_ adsr1_gate;
 static bool _CCM_ adsr2_gate;
 static Svf _CCM_ filter;
 
-static _CCM_ EventSequencer seq;
-
 /*----------------------------------------------------------------------------------------------*/
 void SoundGeneratorInit(void) {
+
+	// set command table
+	size_t ts;
+	const CommandParser::Entry *table = getCommandTable(ts);
+	parser.setTable(table, ts);
 
 	vol = 1.0f;
 
@@ -69,30 +82,32 @@ void SoundGeneratorInit(void) {
 
 /*----------------------------------------------------------------------------------------------*/
 void InterpretKey(uint8_t key) {
+
 	switch (key) {
-	case '0':
-		source = NONE;
-		break;
 
-	case '1':
-		source = WH_NOISE;
-		break;
-
-	case '2':
-		source = PARTICLE;
-		break;
-
-	case '3':
-		source = GRAIN_OSC;
-		break;
-
-	case '4':
-		source = DUST;
-		break;
-
-	case '5':
-		source = CK_NOISE;
-		break;
+//	case '0':
+//		source = NONE;
+//		break;
+//
+//	case '1':
+//		source = WH_NOISE;
+//		break;
+//
+//	case '2':
+//		source = PARTICLE;
+//		break;
+//
+//	case '3':
+//		source = GRAIN_OSC;
+//		break;
+//
+//	case '4':
+//		source = DUST;
+//		break;
+//
+//	case '5':
+//		source = CK_NOISE;
+//		break;
 
 	case '+':
 		incVol();
@@ -123,7 +138,16 @@ void InterpretKey(uint8_t key) {
 		seq.RandomizeVelo();
 		break;
 
+	case 's':
+		seq.DisplayStatus();
+		break;
+
+	case ' ':
+		seq.isRunning = !seq.isRunning;
+		break;
+
 	default:
+		parser.feedChar(key);
 		break;
 	}
 }

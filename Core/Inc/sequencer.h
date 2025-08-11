@@ -21,22 +21,29 @@ using namespace std;
 
 /*-----------------------------------------------------------------------------------------------------------*/
 class EventSequencer {
+
 public:
+
 	EventSequencer() {
 	}
 	~EventSequencer() {
 	}
 
+	bool isRunning;
+
 	void Init(float sr = 48'000.f, uint16_t reso = 48,
-			uint32_t max_len = 10'000);
+			uint32_t max_len = 20'000);
 	void Process();
 	void CreatePattern(uint16_t evnb);
+	void NewLoop(uint32_t units);
 	void DisplayPattern();
+	void DisplayStatus();
 	void AddOneEvent();
 	void Clear();
 	void RandomizeVelo();
 
 private:
+
 	float sample_rate_;
 	uint16_t resolution_;		// Number of samples between each sequencer tick
 	uint16_t sample_counter_;

@@ -135,7 +135,8 @@ int main(void)
 
 	/* Turn ON LED4: start of application */
 	BSP_LED_On(LED4);
-	printf("Coucou les amis !\n");
+	PrintALine();
+	printf(">>>   Bruitenkor !  <<<\n");
 	PrintALine();
 	SoundGeneratorInit();
 	AudioInit();

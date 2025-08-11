@@ -82,9 +82,10 @@ void USBH_HID_EventCallback(USBH_HandleTypeDef *phost) {
 		printf(
 				"ASCII key =  %c   ||   key code = 0x%.2X   ||  keys_fr = %c \r\n",
 				key, keybd_info->keys[0], ext_key);
+		InterpretKey(key);
 	}
 
-	InterpretKey(key);
+
 	//printf("----------------------------------------------------\r\n");
 }
 /* USER CODE END 1 */

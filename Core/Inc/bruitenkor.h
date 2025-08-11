@@ -15,7 +15,6 @@ extern "C"
 
 #include <stdint.h>
 
-
 /*-----------------------------------------------------------------------------------------------------------*/
 void InterpretKey(uint8_t key);
 void SoundGeneratorInit(void);

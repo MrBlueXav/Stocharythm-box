@@ -1,6 +1,6 @@
-# Sound demo for STM32F4 Discovery kit
+# Bruitenkor ! for STM32F4 Discovery kit
 
-
+Funny drum machine controlled with PC usb keyboard plugged in the board.
 
 - - - - 
 
