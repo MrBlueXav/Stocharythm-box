@@ -5,6 +5,7 @@
  *      Author: Xavier Halgand
  */
 
+#include <Freeverb.hpp>
 #include "bruitenkor.h"
 #include "bruitenkor.hpp"
 #include "sequencer.h"
@@ -14,6 +15,7 @@
 
 #include <math.h>
 #include "daisysp.h"
+#include "MiniFreeverb.h"
 
 using namespace daisysp;
 
@@ -23,7 +25,7 @@ enum Source {
 };
 
 //-----------------------------------------------------------------------------------------------
-_CCM_ EventSequencer seq;
+EventSequencer seq _CCM_;
 
 // Command table provider from commands.cpp
 extern const CommandParser::Entry* getCommandTable(size_t &outSize);
@@ -33,18 +35,27 @@ extern const CommandParser::Entry* getCommandTable(size_t &outSize);
 static float sample_rate = SAMPLERATE;
 static CommandParser parser;
 static WhiteNoise _CCM_ w_noise;
-static Particle _CCM_ particle;
-static GrainletOscillator _CCM_ gr_osc;
-static Dust _CCM_ dust;
-static ClockedNoise _CCM_ ck_noise;
-static Source source = WH_NOISE;
-static float vol;
+static float wnoiseVol _CCM_;
+
+//static SyntheticBassDrum bd _CCM_;
+//static bool bdTrig;
+
+//static AnalogBassDrum anaBD _CCM_;
+static SyntheticBassDrum synBD _CCM_;
+//static AnalogSnareDrum anaSD _CCM_;
+//static SyntheticSnareDrum synSD _CCM_;
+//static HiHat hh _CCM_;
+
+static float vol _CCM_;
+
 static AdEnv _CCM_ ad1;
 static Adsr _CCM_ adsr1;
 static Adsr _CCM_ adsr2;
 static bool _CCM_ adsr1_gate;
 static bool _CCM_ adsr2_gate;
 static Svf _CCM_ filter;
+//static Freeverb rev1;	// Freeverb (stereo) : 100kB in RAM
+static MiniFreeverb rev _CCM_; // Mini Freeverb (mono) : 23kB in RAM
 
 /*----------------------------------------------------------------------------------------------*/
 void SoundGeneratorInit(void) {
@@ -54,15 +65,30 @@ void SoundGeneratorInit(void) {
 	const CommandParser::Entry *table = getCommandTable(ts);
 	parser.setTable(table, ts);
 
-	vol = 1.0f;
+	vol = 2.2f;
+	wnoiseVol = 1.0f;
 
 	w_noise.Init();
-	particle.Init(sample_rate);
-	gr_osc.Init(sample_rate);
-	gr_osc.SetFreq(110.f);
-	gr_osc.SetFormantFreq(300.f);
-	dust.Init();
-	ck_noise.Init(sample_rate);
+	//particle.Init(sample_rate);
+	//gr_osc.Init(sample_rate);
+	//gr_osc.SetFreq(110.f);
+	//gr_osc.SetFormantFreq(300.f);
+	//dust.Init();
+	//ck_noise.Init(sample_rate);
+
+//	bd.Init(sample_rate);
+//	bd.SetFreq(50.f);
+//	bd.SetDirtiness(.5f);
+//	bd.SetFmEnvelopeAmount(.6f);
+//	bdTrig = false;
+//
+//	anaBD.Init(sample_rate);
+//	anaSD.Init(sample_rate);
+//	synSD.Init(sample_rate);
+//	hh.Init(sample_rate);
+
+	synBD.Init(sample_rate);
+
 	adsr1.Init(sample_rate);
 	adsr1_gate = false;
 	adsr1.SetTime(ADSR_SEG_ATTACK, 0.0f);
@@ -85,29 +111,23 @@ void InterpretKey(uint8_t key) {
 
 	switch (key) {
 
-//	case '0':
-//		source = NONE;
-//		break;
-//
-//	case '1':
-//		source = WH_NOISE;
-//		break;
-//
-//	case '2':
-//		source = PARTICLE;
-//		break;
-//
-//	case '3':
-//		source = GRAIN_OSC;
-//		break;
-//
-//	case '4':
-//		source = DUST;
-//		break;
-//
-//	case '5':
-//		source = CK_NOISE;
-//		break;
+	case '(':				// First, one key commands.
+		vol *= 1.1f;
+		printf("Source volume = %d \r\n", static_cast<uint16_t>(vol * 100));
+		break;
+
+	case ')':
+		vol *= 0.9f;
+		printf("Source volume = %d \r\n", static_cast<uint16_t>(vol * 100));
+		break;
+
+	case '/':
+		synBD.Trig();
+		break;
+
+	case '*':
+		adsr1.Retrigger(true);
+		break;
 
 	case '+':
 		incVol();
@@ -117,17 +137,22 @@ void InterpretKey(uint8_t key) {
 		decVol();
 		break;
 
-	case '*':
+	case 'n':
 		seq.CreatePattern(4);
 		seq.DisplayPattern();
 		break;
 
-	case '/':
-		seq.AddOneEvent();
+	case 'h':
+		seq.AddOneEvent(0x19);
+		break;
+
+	case 'j':
+		seq.AddOneEvent(0x09);
 		break;
 
 	case '.':
 		seq.Clear();
+		printf("All events cleared !\r\n");
 		break;
 
 	case 'd':
@@ -136,6 +161,11 @@ void InterpretKey(uint8_t key) {
 
 	case 'v':
 		seq.RandomizeVelo();
+		printf("New random velocities !\r\n");
+		break;
+
+	case 'a':
+		seq.automode = !seq.automode;
 		break;
 
 	case 's':
@@ -154,15 +184,22 @@ void InterpretKey(uint8_t key) {
 
 /*----------------------------------------------------------------------------------------------*/
 void InterpretEvent(MIDIevent *ev) {
+
 	switch ((ev->type) & 0x0F) {
 	case NoteOn:
-		vol = (ev->data3) / 127.f;
-		adsr1.Retrigger(true);
-		adsr1_gate = true;
+		if ((ev->type) == 0x09) {	// NoteOn on cable 0
+			wnoiseVol = (ev->data3) / 127.f;
+			adsr1.Retrigger(true);
+			adsr1_gate = true;
+
+		} else if ((ev->type) == 0x19) {	// NoteOn on cable 1
+
+			synBD.SetAccent((ev->data3) / 127.f);
+			synBD.Trig();
+		}
 		break;
 
 	case NoteOff:
-		//adsr1_gate = false;
 		break;
 
 	case ControlChange:
@@ -194,36 +231,22 @@ void MakeSound(uint16_t *buf, uint16_t length) //
 
 		seq.Process();
 
-		/*--- Generate waveform ---*/
-		switch (source) {
-		case NONE:
-			y = 0.f;
-			break;
+		/*--- Generate waveforms ---*/
 
-		case WH_NOISE:
-			y = w_noise.Process();
-			break;
+		//const float C = 1.f / 6.f; // reverb mix coefficient
+		auto y0 = w_noise.Process() * adsr1.Process(adsr1_gate) * wnoiseVol;
+		//auto y1 = anaBD.Process();
+		auto y2 = synBD.Process();
+		//auto y3 = anaSD.Process();
+		//auto y4 = synSD.Process();
+		//auto y5 = hh.Process();
+		//anaBDTrig = synBDTrig = anaSDTrig = synSDTrig = hhTrig = false; // reset triggers
 
-		case PARTICLE:
-			y = particle.Process();
-			break;
+		//y = C * (y0 + y1 + y2 + y3 + y4 + y5);
 
-		case GRAIN_OSC:
-			y = gr_osc.Process();
-			break;
+		y = vol * (y0 + y2 * 2.f);
 
-		case DUST:
-			y = dust.Process();
-			break;
-
-		case CK_NOISE:
-			y = ck_noise.Process();
-			break;
-
-		default:
-			break;
-		}
-		y = y * vol * adsr1.Process(adsr1_gate);
+		y = 0.5f * y + 0.5f * rev.process(y);
 
 		yL = yR = y;
 

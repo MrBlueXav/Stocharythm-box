@@ -56,7 +56,7 @@ void SyntheticBassDrum::Init(float sample_rate)
     tone_lp_              = 0.0f;
     sustain_gain_         = 0.0f;
 
-    SetFreq(100.f);
+    SetFreq(50.f);
     SetSustain(false);
     SetAccent(.2f);
     SetTone(.6f);

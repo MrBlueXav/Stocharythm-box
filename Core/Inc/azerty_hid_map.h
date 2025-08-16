@@ -1,8 +1,11 @@
 /******************************************************************************************/
 // 					azerty_hid_map.h
 //	Langage C
-// Encodage fichier : UTF-8
-// Table de correspondance HID USB -> caractères AZERTY FR (séquences \xNN pour Latin-15)
+//	Encodage fichier : UTF-8
+//	Table de correspondance HID USB -> caractères AZERTY FR (séquences \xNN pour Latin-15)
+//
+//	Xavier Halgand & ChatGPT !
+//
 /******************************************************************************************/
 #ifndef AZERTY_HID_MAP_H
 #define AZERTY_HID_MAP_H
@@ -23,7 +26,7 @@ typedef struct  {
 } KeyMapEntry;
 
 // NOTE: les valeurs \xNN sont des octets à placer dans un fichier source ASCII.
-// Ils correspondent aux codes de la page Latin (ISO-8859-1/15) pour les lettres accentuées et caractères spéciaux.
+// Ils correspondent aux codes de la page Latin (ISO-8859-1/15) pour les lettres accentuées et autres caractères spéciaux.
 static const KeyMapEntry azertyKeyMap[] = {
     // Lettres (HID 0x04..0x1D)
     {0x14, 'a', 'A', 0},
@@ -90,6 +93,9 @@ static const KeyMapEntry azertyKeyMap[] = {
     {0x2E, '=', '+', '}'},      // '=' ; Shift -> '+'
     {0x64, '<', '>', 0},      // '<' key (non-US)
     // NOTE: layouts vary; adapte si ton clavier diffère.
+
+	{0x52, '(', 0, 0},	// flèche haute redirigée vers (
+	{0x51, ')', 0, 0},	// flèche basse redirigée vers )
 
     // Numeric keypad (HID 0x53 .. 0x64) - NumLock ON typical values
 	{0x53,   0,   0, 0},	// Touche Verr Num

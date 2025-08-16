@@ -2,7 +2,8 @@
  * command_parser.hpp
  *
  *  Created on: Aug 10, 2025
- *      Author: XavSab
+ *
+ *      Author: Xavier Halgand & ChatGPT !
  */
 
 #ifndef INC_COMMAND_PARSER_HPP_
