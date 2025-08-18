@@ -12,15 +12,15 @@
 #include "objectpool.hpp"
 #include "rng.h"
 
+
 #include <stdio.h>
 #include <cmath>
 #include <inttypes.h> // pour PRIu32
 
 /*---------------------------------------------------------------------------------------------*/
-MIDIevent ev1(0, 0x09, 0x90, 57, 127); // At tick 0, Note On A3 velocity = 127
-MIDIevent ev2(333, 0x08, 0x80, 57, 127); // At tick 333, Note Off A3 velocity = 127
-
-ObjectPool<MIDIevent, MAX_EVENT_NB> _CCM_ pool;
+// MIDIevent ev1(0, 0x09, 0x90, 57, 127); // At tick 0, Note On A3 velocity = 127
+// MIDIevent ev2(333, 0x08, 0x80, 57, 127); // At tick 333, Note Off A3 velocity = 127
+ObjectPool<MIDIevent, MAX_EVENT_NB> pool _CCM_;
 
 /*---------------------------------------------------------------------------------------------*/
 void EventSequencer::Init(float sr, uint16_t reso, uint32_t max_len) {
@@ -100,6 +100,20 @@ void EventSequencer::NewLoop(uint32_t units) {	// units = dixième de secondes
 	if (len <= max_len_ && len >= 10) {
 		loop_len_ = len;
 	}
+}
+
+/*---------------------------------------------------------------------------------------------*/
+void EventSequencer::ModifySpeed(float coef) {
+
+	auto len = static_cast<uint32_t>(std::round(loop_len_ * coef));
+	if (len <= max_len_ && len >= 10) {
+		loop_len_ = len;
+		for (auto ev : event_list_) {
+			ev->position =
+					static_cast<uint32_t>(std::round(ev->position * coef));
+		}
+	}
+
 }
 
 /*---------------------------------------------------------------------------------------------*/

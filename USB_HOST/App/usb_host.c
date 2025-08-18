@@ -68,7 +68,8 @@ void USBH_HID_EventCallback(USBH_HandleTypeDef *phost) {
 	//uint8_t key = USBH_HID_GetASCIICode(keybd_info);
 	bool shift = (keybd_info->lshift || keybd_info->rshift);
 	bool altGr = (keybd_info->ralt && !shift); // AltGr only if Right Alt and not shift
-	char ext_key = translateHIDtoChar(keybd_info->keys[0], shift, altGr);
+	uint8_t key_code = keybd_info->keys[0];
+	char ext_key = translateHIDtoChar(key_code, shift, altGr);
 
 //	printf("| state = %d | ", keybd_info->state);
 //	printf("lctrl = %d | ", keybd_info->lctrl);
@@ -82,10 +83,8 @@ void USBH_HID_EventCallback(USBH_HandleTypeDef *phost) {
 //	printf("keys = [ 0x%.2X, 0x%.2X, 0x%.2X, 0x%.2X, 0x%.2X 0x%.2X, ]\r\n", keybd_info->keys[0], keybd_info->keys[1],keybd_info->keys[2],keybd_info->keys[3],keybd_info->keys[4],keybd_info->keys[5]);
 
 	if (keybd_info->keys[0] != 0) {
-//		printf(
-//				"ASCII key =  %c   ||   key code = 0x%.2X   ||  keys_fr = %c \r\n",
-//				key, keybd_info->keys[0], ext_key);
-		InterpretKey(ext_key);
+		//printf("||   key code = 0x%.2X   ||  keys_fr = %c ||\r\n", key_code, ext_key);
+		InterpretKey(ext_key, key_code);
 	}
 
 

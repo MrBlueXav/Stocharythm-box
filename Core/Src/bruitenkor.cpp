@@ -5,17 +5,19 @@
  *      Author: Xavier Halgand
  */
 
-#include <Freeverb.hpp>
+#include <math.h>
+
+#include "Freeverb.hpp"
 #include "bruitenkor.h"
 #include "bruitenkor.hpp"
 #include "sequencer.h"
 #include "constants.h"
 #include "audio_play.h"
 #include "command_parser.hpp"
-
-#include <math.h>
+#include "FlashWavPlayer.h"
 #include "daisysp.h"
 #include "MiniFreeverb.h"
+#include "wave_data.h"
 
 using namespace daisysp;
 
@@ -46,6 +48,8 @@ static SyntheticBassDrum synBD _CCM_;
 //static SyntheticSnareDrum synSD _CCM_;
 //static HiHat hh _CCM_;
 
+FlashWavPlayer snare _CCM_;
+
 static float vol _CCM_;
 
 static AdEnv _CCM_ ad1;
@@ -65,7 +69,7 @@ void SoundGeneratorInit(void) {
 	const CommandParser::Entry *table = getCommandTable(ts);
 	parser.setTable(table, ts);
 
-	vol = 2.2f;
+	vol = 2.f;
 	wnoiseVol = 1.0f;
 
 	w_noise.Init();
@@ -89,6 +93,8 @@ void SoundGeneratorInit(void) {
 
 	synBD.Init(sample_rate);
 
+	snare.Init(sample_rate, Snare_808, Snare_808_len);
+
 	adsr1.Init(sample_rate);
 	adsr1_gate = false;
 	adsr1.SetTime(ADSR_SEG_ATTACK, 0.0f);
@@ -107,7 +113,7 @@ void SoundGeneratorInit(void) {
 }
 
 /*----------------------------------------------------------------------------------------------*/
-void InterpretKey(uint8_t key) {
+void InterpretKey(uint8_t key, uint8_t keycode) {
 
 	switch (key) {
 
@@ -123,6 +129,10 @@ void InterpretKey(uint8_t key) {
 
 	case '/':
 		synBD.Trig();
+		break;
+
+	case '!':
+		snare.Trig();
 		break;
 
 	case '*':
@@ -177,7 +187,18 @@ void InterpretKey(uint8_t key) {
 		break;
 
 	default:
-		parser.feedChar(key);
+		if (keycode == 79) {		// left arrow
+
+			seq.ModifySpeed(0.95f);
+			printf("Speed up !\r\n");
+
+		} else if (keycode == 80) {	// right arrow
+
+			seq.ModifySpeed(1.05f);
+			printf("Slow down !\r\n");
+
+		} else
+			parser.feedChar(key);
 		break;
 	}
 }
@@ -237,6 +258,7 @@ void MakeSound(uint16_t *buf, uint16_t length) //
 		auto y0 = w_noise.Process() * adsr1.Process(adsr1_gate) * wnoiseVol;
 		//auto y1 = anaBD.Process();
 		auto y2 = synBD.Process();
+		auto y3 = snare.Process();
 		//auto y3 = anaSD.Process();
 		//auto y4 = synSD.Process();
 		//auto y5 = hh.Process();
@@ -244,7 +266,7 @@ void MakeSound(uint16_t *buf, uint16_t length) //
 
 		//y = C * (y0 + y1 + y2 + y3 + y4 + y5);
 
-		y = vol * (y0 + y2 * 2.f);
+		y = vol * (y0 + y2 * 2.f + y3);
 
 		y = 0.5f * y + 0.5f * rev.process(y);
 

@@ -51,6 +51,7 @@ public:
 	void CreatePattern(uint16_t ev_nb);
 	void AddRegularPattern(uint16_t ev_nb);
 	void NewLoop(uint32_t units);	// units = dixième de secondes
+	void ModifySpeed(float coef);
 	void DisplayPattern();
 	void DisplayStatus();
 	void AddOneEvent(uint8_t type);
