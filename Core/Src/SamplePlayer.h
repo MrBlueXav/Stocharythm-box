@@ -5,15 +5,15 @@
  *      Author: Xavier Halgand
  */
 
-#ifndef SRC_FLASHWAVPLAYER_H_
-#define SRC_FLASHWAVPLAYER_H_
+#ifndef SRC_SAMPLEPLAYER_H_
+#define SRC_SAMPLEPLAYER_H_
 
 #include <cstdint>
 
-class FlashWavPlayer {
+class SamplePlayer {
 public:
-	FlashWavPlayer();
-	~FlashWavPlayer() {};
+	SamplePlayer();
+	~SamplePlayer() {};
 
 	/** Init the module	 */
 	void Init(float sample_rate, const int16_t *samplebuffer, uint32_t length);
@@ -36,4 +36,4 @@ private:
 	bool trigged_;
 };
 
-#endif /* SRC_FLASHWAVPLAYER_H_ */
+#endif /* SRC_SAMPLEPLAYER_H_ */

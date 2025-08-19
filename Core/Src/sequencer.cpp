@@ -85,7 +85,7 @@ void EventSequencer::AddRegularPattern(uint16_t ev_nb) {
 
 	for (int i = 0; i < ev_nb; i++) {
 		auto v = (GetRandom32bits() % 83) + 45;
-		auto ev = pool.allocate(i * step, 0x19, 3, 4, v);
+		auto ev = pool.allocate(i * step, 0x09, 3, 4, v);
 		Add(ev);
 	}
 	TimeSort();
@@ -121,7 +121,7 @@ void EventSequencer::AddOneEvent(uint8_t type) {
 
 	if (event_counter_ < max_event_) {
 
-		auto t = (GetRandom32bits() % loop_len_) + 1;
+		auto t = (GetRandom32bits() % loop_len_);
 		auto v = (GetRandom32bits() % 83) + 45;
 		auto ev = pool.allocate(t, type, 1, 2, v);
 		event_list_.push_front(ev);

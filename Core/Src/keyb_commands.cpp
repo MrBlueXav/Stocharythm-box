@@ -40,10 +40,10 @@ void NewLoop(int argc, int argv[]) {
 //-----------------------------------------------------------------------------
 void addRegPattern(int argc, int argv[]) {
     if (argc >= 1) {
-        printf("r: add %d new regular events\r\n", argv[0]);
+        printf("b: add %d new regular events\r\n", argv[0]);
         seq.AddRegularPattern(argv[0]);
     } else {
-        printf(">>>> Error.  Usage: r<number>\r\n");
+        printf(">>>> Error.  Usage: b<number>\r\n");
     }
 }
 
@@ -55,7 +55,7 @@ static const CommandParser::Entry g_commandTable[] = {
 
 	{"l", NewLoop, 1},
 
-	{"r", addRegPattern, 1},
+	{"b", addRegPattern, 1},
 
     // ajouter d'autres commandes ici
 };

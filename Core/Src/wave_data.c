@@ -1,4 +1,15 @@
+/***********************************************************************************************
+ * File Name          : wave_data.c
+ * Author			  : Xavier Halgand
+ * Date               :	summer 2025
+ * Description        : sound samples in arrays.
+ * 						A sample bank (array of structs) is available at the end of this file
+ *
+ **********************************************************************************************/
+
 #include "wave_data.h"
+
+/*-----------------------------------------------------------------------------------*/
 
 // 606 Snare.wav
 // Format: 1 canaux, 48000 Hz, 16 bits
@@ -42282,3 +42293,54 @@ const int16_t Zipper[] = {
     -9523, -10133, 8362, 20658, 13626, 1034, -4867, -2333, 1577, 1046, 
     -243, 
 };
+
+/****************************************************************************************/
+
+// Banque de samples
+const struct Sample sampleBank[] = {
+    { Analog_Agogo, Analog_Agogo_len, 48000, 1, 16 },
+    { Analog_Snap, Analog_Snap_len, 48000, 1, 16 },
+    { analogBass10, analogBass10_len, 48000, 1, 16 },
+    { Clap_6, Clap_6_len, 48000, 1, 16 },
+    { COWBELL_2, COWBELL_2_len, 48000, 1, 16 },
+    { Cowbell, Cowbell_len, 48000, 1, 16 },
+    { CR78_Snare, CR78_Snare_len, 48000, 1, 16 },
+    { d_snr3, d_snr3_len, 48000, 1, 16 },
+    { DS4_Snare_CS, DS4_Snare_CS_len, 48000, 1, 16 },
+    { Fat_Kick, Fat_Kick_len, 48000, 1, 16 },
+    { Guiro_2, Guiro_2_len, 48000, 1, 16 },
+    { Hat_Pedal, Hat_Pedal_len, 48000, 1, 16 },
+    { Hollow_Snare, Hollow_Snare_len, 48000, 1, 16 },
+    { kik_909_r_28, kik_909_r_28_len, 48000, 1, 16 },
+    { L9000_SD1, L9000_SD1_len, 48000, 1, 16 },
+    { M_Bongo_Tone_1, M_Bongo_Tone_1_len, 48000, 1, 16 },
+    { palm_tom_3, palm_tom_3_len, 48000, 1, 16 },
+    { Rap_Snare, Rap_Snare_len, 48000, 1, 16 },
+    { RIDE02, RIDE02_len, 48000, 1, 16 },
+    { Rim_2_909_SW, Rim_2_909_SW_len, 48000, 1, 16 },
+    { Rimshot_Snare_1, Rimshot_Snare_1_len, 48000, 1, 16 },
+    { SFX_Space_Whip, SFX_Space_Whip_len, 48000, 1, 16 },
+    { slap_tom, slap_tom_len, 48000, 1, 16 },
+    { Snap, Snap_len, 48000, 1, 16 },
+    { Snare_2, Snare_2_len, 48000, 1, 16 },
+    { Snare_4, Snare_4_len, 48000, 1, 16 },
+    { Snare_5, Snare_5_len, 48000, 1, 16 },
+    { Snare_6, Snare_6_len, 48000, 1, 16 },
+    { Snare_808, Snare_808_len, 48000, 1, 16 },
+    { Snare606, Snare606_len, 48000, 1, 16 },
+    { Snare808, Snare808_len, 48000, 1, 16 },
+    { Snare909_Morph_2, Snare909_Morph_2_len, 48000, 1, 16 },
+    { snr_1_igg, snr_1_igg_len, 48000, 1, 16 },
+    { snr_classic, snr_classic_len, 48000, 1, 16 },
+    { sn_tr909_b, sn_tr909_b_len, 48000, 1, 16 },
+    { SOUND40, SOUND40_len, 48000, 1, 16 },
+    { Synth_Bass_47, Synth_Bass_47_len, 48000, 1, 16 },
+    { Timbale_3, Timbale_3_len, 48000, 1, 16 },
+    { Timbale, Timbale_len, 48000, 1, 16 },
+    { Wood_Block_Low, Wood_Block_Low_len, 48000, 1, 16 },
+    { Zipper, Zipper_len, 48000, 1, 16 },
+};
+
+const unsigned int sampleBankCount = sizeof(sampleBank) / sizeof(sampleBank[0]);
+
+/******************************************************************************************/

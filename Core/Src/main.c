@@ -4,8 +4,8 @@
  * @file           : main.c
  * @brief          : Main program body
  ******************************************************************************
- * @attention		SynthF4
- * 					A synthesizer platform for STM32F407 Discovery Kit board
+ * @attention		SynthF407
+ * 					Another synthesizer platform for STM32F407 Discovery Kit board
  * 					(by STMicroelectronics)
  * 					July 2025
  * 					Xavier Halgand aka MrBlueXav (Github)
@@ -64,26 +64,6 @@ void MX_USB_HOST_Process(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
-///* Retarget printf () to USART2 */
-//int __io_putchar(int ch)
-//{
-//	while (!(USART2->SR & USART_SR_TXE))
-//	{
-//	}
-//	USART2->DR = (uint32_t) ch;
-//	return ch;
-//}
-//
-//int _write(int32_t file, uint8_t *ptr, int32_t len)
-//{
-//	int i;
-//	for (i = 0; i < len; i++)
-//	{
-//		__io_putchar(*(ptr++));
-//	}
-//	return len;
-//}
 
 /* USER CODE END 0 */
 

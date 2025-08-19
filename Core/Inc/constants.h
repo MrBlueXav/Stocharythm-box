@@ -2,8 +2,8 @@
  ******************************************************************************
  * File Name          : constants.h
  * Author			  : Xavier Halgand
- * Date               :	2024
- * Description        : Global defines for SynthF4
+ * Date               :	summer 2025
+ * Description        : Global defines for SynthF407
  ******************************************************************************
  */
 #ifndef __DEKR_CONSTANTS_H__
@@ -16,6 +16,8 @@ extern "C" {
 /*****************************************************************************************************************/
 // For sequencer and pool of midi events :
 #define MAX_EVENT_NB	200
+
+#define SP_VOICE_NB		6
 
 /*****************************************************************************************************************/
 #define AUDIO_BUFFER_SIZE_IN_BYTES 		2048 /* AUDIO_BUFFER_SIZE (in bytes) must be a multiple of 8   */

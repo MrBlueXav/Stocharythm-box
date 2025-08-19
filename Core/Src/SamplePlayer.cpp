@@ -5,11 +5,11 @@
  *      Author: Xavier Halgand
  */
 
-#include "FlashWavPlayer.h"
+#include "SamplePlayer.h"
 
 //=======================================================================
 
-FlashWavPlayer::FlashWavPlayer() {
+SamplePlayer::SamplePlayer() {
 
 	sr_ = 48000.f;
 	index_ = 0;
@@ -19,7 +19,8 @@ FlashWavPlayer::FlashWavPlayer() {
 	trigged_ = false;
 }
 
-void FlashWavPlayer::Init(float sample_rate, const int16_t *samplebuffer,
+//--------------------------------------------------------------------------
+void SamplePlayer::Init(float sample_rate, const int16_t *samplebuffer,
 		uint32_t length) {
 
 	sr_ = sample_rate;
@@ -32,8 +33,9 @@ void FlashWavPlayer::Init(float sample_rate, const int16_t *samplebuffer,
 
 }
 
+//--------------------------------------------------------------------------
 /** Get the next sample. */
-float FlashWavPlayer::Process() {
+float SamplePlayer::Process() {
 
 	if (trigged_ == true) {
 		auto out = amp_ * (*smp_) / 32768.f;
@@ -51,8 +53,9 @@ float FlashWavPlayer::Process() {
 
 }
 
+//--------------------------------------------------------------------------
 /** Trigger the drum */
-void FlashWavPlayer::Trig() {
+void SamplePlayer::Trig() {
 
 	index_ = 0;
 	smp_ = smp_buf_;
@@ -60,7 +63,8 @@ void FlashWavPlayer::Trig() {
 
 }
 
-void FlashWavPlayer::SetAmp(float amp) {
+//--------------------------------------------------------------------------
+void SamplePlayer::SetAmp(float amp) {
 
 	amp_ = amp;
 }
