@@ -1,6 +1,8 @@
 /*
  * keyb_commands.cpp
  *
+ * List of multi key commands, followed by "enter" key
+ *
  *  Created on: Aug 10, 2025
  *      Author: Xavier Halgand & ChatGPT !
  */
@@ -15,8 +17,10 @@
 
 extern EventSequencer seq;
 
-//*****************************************************************************
-// Command functions
+//******************************   Command functions  *************************
+
+//-----------------------------------------------------------------------------
+//	Command : c<n>		Ex : c6 followed by "enter" key -> creates 6 events
 //-----------------------------------------------------------------------------
 void NewPatterns(int argc, int argv[]) {
     if (argc >= 1) {
@@ -28,6 +32,8 @@ void NewPatterns(int argc, int argv[]) {
 }
 
 //-----------------------------------------------------------------------------
+//	Command : l<n>		Sets the loop duration at n * 0.1 seconds
+//-----------------------------------------------------------------------------
 void NewLoop(int argc, int argv[]) {
     if (argc >= 1) {
         printf("l: create new loop : %d units\r\n", argv[0]);
@@ -38,12 +44,14 @@ void NewLoop(int argc, int argv[]) {
 }
 
 //-----------------------------------------------------------------------------
+//	Command : b<n>		Creates n regular events in the loop
+//-----------------------------------------------------------------------------
 void addRegPattern(int argc, int argv[]) {
     if (argc >= 1) {
-        printf("b: add %d new regular events\r\n", argv[0]);
-        seq.AddRegularPattern(argv[0]);
+        printf("b: add %d new regular events for instrument %d\r\n", argv[0], argv[1]);
+        seq.AddRegularPattern(argv[0], argv[1]);
     } else {
-        printf(">>>> Error.  Usage: b<number>\r\n");
+        printf(">>>> Error.  Usage: b<number> <instr>\r\n");
     }
 }
 
@@ -55,7 +63,7 @@ static const CommandParser::Entry g_commandTable[] = {
 
 	{"l", NewLoop, 1},
 
-	{"b", addRegPattern, 1},
+	{"b", addRegPattern, 2},
 
     // ajouter d'autres commandes ici
 };

@@ -12,7 +12,6 @@
 #include "objectpool.hpp"
 #include "rng.h"
 
-
 #include <stdio.h>
 #include <cmath>
 #include <inttypes.h> // pour PRIu32
@@ -79,16 +78,20 @@ void EventSequencer::CreatePattern(uint16_t ev_nb) {
 }
 
 /*---------------------------------------------------------------------------------------------*/
-void EventSequencer::AddRegularPattern(uint16_t ev_nb) {
+void EventSequencer::AddRegularPattern(uint16_t ev_nb, int inst) {
 
-	auto step = static_cast<uint16_t>(std::round(loop_len_ / (float) (ev_nb)));
+	if (inst >= 0 && inst < SP_VOICE_NB) {
 
-	for (int i = 0; i < ev_nb; i++) {
-		auto v = (GetRandom32bits() % 83) + 45;
-		auto ev = pool.allocate(i * step, 0x09, 3, 4, v);
-		Add(ev);
+		auto step = static_cast<uint16_t>(std::round(
+				loop_len_ / (float) (ev_nb)));
+
+		for (int i = 0; i < ev_nb; i++) {
+			auto v = (GetRandom32bits() % 83) + 45;
+			auto ev = pool.allocate(i * step, 16 * inst + 9, 3, 4, v);
+			Add(ev);
+		}
+		TimeSort();
 	}
-	TimeSort();
 }
 
 /*---------------------------------------------------------------------------------------------*/
