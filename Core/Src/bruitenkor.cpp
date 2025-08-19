@@ -16,7 +16,8 @@
 #include "sequencer.h"
 #include "constants.h"
 #include "audio_play.h"
-#include "command_parser.hpp"
+//#include "command_parser.hpp"
+#include "keyb_command_parser2.h"
 #include "daisysp.h"
 #include "MiniFreeverb.h"
 #include "wave_data.h"
@@ -34,14 +35,14 @@ enum Source {
 EventSequencer seq _CCM_;
 
 // Command table provider from commands.cpp
-extern const CommandParser::Entry* getCommandTable(size_t &outSize);
+//extern const CommandParser::Entry* getCommandTable(size_t &outSize);
 
 //-----------------------------------------------------------------------------------------------
 
 static float sample_rate = SAMPLERATE;
 static float vol _CCM_;
 
-static CommandParser parser;
+//static CommandParser parser;
 
 static WhiteNoise _CCM_ w_noise;
 static float wnoiseVol _CCM_;
@@ -74,9 +75,9 @@ void samplePlayerRandomInit() {
 void SoundGeneratorInit(void) {
 
 	// set command table
-	size_t ts;
-	const CommandParser::Entry *table = getCommandTable(ts);
-	parser.setTable(table, ts);
+	//size_t ts;
+	//const CommandParser::Entry *table = getCommandTable(ts);
+	//parser.setTable(table, ts);
 
 	vol = 2.f;
 	wnoiseVol = 1.0f;
@@ -222,7 +223,7 @@ void InterpretKey(uint8_t key, uint8_t keycode) {
 			printf("Slow down !\r\n");
 
 		} else
-			parser.feedChar(key);
+			feedChar(key);
 		break;
 	}
 }
@@ -317,12 +318,8 @@ void MakeSound(uint16_t *buf, uint16_t length) //
 
 		//const float C = 1.f / 6.f; // reverb mix coefficient
 		auto y0 = w_noise.Process() * adsr1.Process(adsr1_gate) * wnoiseVol;
-		//auto y1 = anaBD.Process();
 		auto y2 = synBD.Process();
 		auto y3 = snare.Process();
-		//auto y4 = synSD.Process();
-		//auto y5 = hh.Process();
-		//anaBDTrig = synBDTrig = anaSDTrig = synSDTrig = hhTrig = false; // reset triggers
 		auto z0 = sp[0].Process();
 		auto z1 = sp[1].Process();
 		auto z2 = sp[2].Process();

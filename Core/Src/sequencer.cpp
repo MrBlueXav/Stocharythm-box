@@ -19,6 +19,7 @@
 /*---------------------------------------------------------------------------------------------*/
 // MIDIevent ev1(0, 0x09, 0x90, 57, 127); // At tick 0, Note On A3 velocity = 127
 // MIDIevent ev2(333, 0x08, 0x80, 57, 127); // At tick 333, Note Off A3 velocity = 127
+
 ObjectPool<MIDIevent, MAX_EVENT_NB> pool _CCM_;
 
 /*---------------------------------------------------------------------------------------------*/
@@ -95,7 +96,7 @@ void EventSequencer::AddRegularPattern(uint16_t ev_nb, int inst) {
 }
 
 /*---------------------------------------------------------------------------------------------*/
-void EventSequencer::NewLoop(uint32_t units) {	// units = dixième de secondes
+void EventSequencer::NewLoop(uint32_t units) {	// units = dixième de secondes (0.1 sec)
 
 	auto f = sample_rate_ * units / resolution_ / 10;
 	auto len = static_cast<uint32_t>(std::round(f));
@@ -142,7 +143,7 @@ void EventSequencer::AddOneEvent(uint8_t type) {
 void EventSequencer::DisplayPattern() {
 
 	if (event_list_.empty()) {
-		printf("Pattern vide ! \r\n");
+		printf("Loop is empty ! \r\n");
 
 	} else {
 		printf(">>>>>>>  Number of Events : %u\r\n", event_counter_);
