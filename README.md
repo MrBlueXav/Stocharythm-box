@@ -51,6 +51,7 @@ Many debug messages through UART (Pin PA2).
 
 - - - - 
 ### Developer notes :
+I'm using STM32CubeIDE (v1.19).  
 This is a configurable project with ioc and BSP files written in C and C++.  
 It should be easily tailored for other powerful STM32 mcu (cortex M33, M4, M7, M55, ...)  
 
