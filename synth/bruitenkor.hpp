@@ -10,7 +10,6 @@
 
 #include "midi_types.h"
 
-
 void InterpretEvent(MIDIevent* ev);
 
 

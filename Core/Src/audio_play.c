@@ -17,7 +17,7 @@
 //#include "soundGen.h"
 //#include "perf.h"
 #include "constants.h"
-#include "test_sound_generator.h"
+#include "bruitenkor.h"
 
 char string_message[100];
 

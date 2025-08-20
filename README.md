@@ -10,17 +10,25 @@ The STM32F4 Discovery kit acts as a USB host for the keyboard.
 
 Work In Progress !!  
 
+*Features* :  
 8 voices at the moment :  
 - 6 sample players which can access to 41 famous short samples (800kB)  
 - 1 Synthetic Bass Drum  (DaisySP/ Emilie Gillet)  
 - 1 white noise with ADSR  
 
 FX : simple reverb based on Freeverb (MiniFreeverb.h)  
+Mono output  
 
 The sequencer is not step based. You define a loop duration and call for sound events which are randomly dispatched in the loop.  
 These are so-called "stocharythms".  
 
 Many debug messages through UART (Pin PA2).  
+
+To improve :  
+[] noise during UART transmissions  
+[] add stereo placement  
+[] make debug messages optional  
+[] remove clicks at the end of some samples
 
 - - - - 
 ### Keyboard control :  
@@ -52,7 +60,7 @@ Many debug messages through UART (Pin PA2).
 - - - - 
 ### Developer notes :
 I'm using STM32CubeIDE (v1.19).  
-This is a configurable project with ioc and BSP files written in C and C++.  
+This is a configurable project with ioc (STM32CubeMX) and BSP files written in C and C++.  
 It should be easily tailored for other powerful STM32 mcu (cortex M33, M4, M7, M55, ...)  
 
 **Keyboard configuration** :  
@@ -68,5 +76,6 @@ There are several Git branches :
 
 
 
-<<< *By Xavier Halgand, Summer 2025* >>>
+<<< *By Xavier Halgand, Summer 2025* >>>  
+Thanks : Electrosmith/DaisySP, Emilie Gillet, ChatGPT, STM32 team...
 

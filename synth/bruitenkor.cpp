@@ -16,20 +16,15 @@
 #include "sequencer.h"
 #include "constants.h"
 #include "audio_play.h"
-//#include "command_parser.hpp"
 #include "keyb_command_parser2.h"
 #include "daisysp.h"
 #include "MiniFreeverb.h"
 #include "wave_data.h"
 #include "SamplePlayer.h"
 #include "rng.h"
+#include "stereo.hpp"
 
 using namespace daisysp;
-
-//-----------------------------------------------------------------------------------------------
-enum Source {
-	NONE, WH_NOISE, PARTICLE, GRAIN_OSC, DUST, CK_NOISE, END
-};
 
 //-----------------------------------------------------------------------------------------------
 EventSequencer seq _CCM_;
@@ -73,11 +68,6 @@ void samplePlayerRandomInit() {
 
 /*----------------------------------------------------------------------------------------------*/
 void SoundGeneratorInit(void) {
-
-	// set command table
-	//size_t ts;
-	//const CommandParser::Entry *table = getCommandTable(ts);
-	//parser.setTable(table, ts);
 
 	vol = 13.f;
 	wnoiseVol = 1.0f;
@@ -223,7 +213,7 @@ void InterpretKey(uint8_t key, uint8_t keycode) {
 			printf("Slow down !\r\n");
 
 		} else
-			feedChar(key);
+			feedChar(key);			// Second, multi key commands -> parser
 		break;
 	}
 }
@@ -250,32 +240,32 @@ void InterpretEvent(MIDIevent *ev) {
 			snare.SetAmp((ev->data3) / 127.f);
 			snare.Trig();
 
-		} else if ((ev->type) == 0x09) {	// NoteOn on cable 12
+		} else if ((ev->type) == 0x09) {	// NoteOn on cable 0
 
 			sp[0].SetAmp((ev->data3) / 127.f);
 			sp[0].Trig();
 
-		} else if ((ev->type) == 0x19) {	// NoteOn on cable 12
+		} else if ((ev->type) == 0x19) {	// NoteOn on cable 1
 
 			sp[1].SetAmp((ev->data3) / 127.f);
 			sp[1].Trig();
 
-		} else if ((ev->type) == 0x29) {	// NoteOn on cable 12
+		} else if ((ev->type) == 0x29) {	// NoteOn on cable 2
 
 			sp[2].SetAmp((ev->data3) / 127.f);
 			sp[2].Trig();
 
-		} else if ((ev->type) == 0x39) {	// NoteOn on cable 12
+		} else if ((ev->type) == 0x39) {	// NoteOn on cable 3
 
 			sp[3].SetAmp((ev->data3) / 127.f);
 			sp[3].Trig();
 
-		} else if ((ev->type) == 0x49) {	// NoteOn on cable 12
+		} else if ((ev->type) == 0x49) {	// NoteOn on cable 4
 
 			sp[4].SetAmp((ev->data3) / 127.f);
 			sp[4].Trig();
 
-		} else if ((ev->type) == 0x59) {	// NoteOn on cable 12
+		} else if ((ev->type) == 0x59) {	// NoteOn on cable 5
 
 			sp[5].SetAmp((ev->data3) / 127.f);
 			sp[5].Trig();
@@ -352,12 +342,15 @@ void MakeSound(uint16_t *buf, uint16_t length) //
 //		                          std::lroundf(32767.0f * yL)
 //		                      )
 //		                  );
+//		uint16_t valueR = ...
 /////////////////////////////////////////////////////////////////////////
 
 		*outp++ = valueL; // left channel sample
 		*outp++ = valueR; // right channel sample
 	}
 }
+
+
 
 /*----------------------------------------------------------------------------------------------*/
 void PrintALine(void) {
