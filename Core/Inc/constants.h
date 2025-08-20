@@ -29,7 +29,7 @@ extern "C" {
 #define _2PI                    6.283185307f
 #define _PI                    	3.14159265f
 
-#define VOL                     60 // initial output DAC volume
+#define VOL                     70 // initial output DAC volume
 #define MAXVOL                  100 // maximal output DAC volume
 
 #define MIDI_MAX				127.f 	// floating max value

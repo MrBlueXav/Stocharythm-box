@@ -79,7 +79,7 @@ void SoundGeneratorInit(void) {
 	//const CommandParser::Entry *table = getCommandTable(ts);
 	//parser.setTable(table, ts);
 
-	vol = 2.f;
+	vol = 13.f;
 	wnoiseVol = 1.0f;
 
 	w_noise.Init();
@@ -196,7 +196,7 @@ void InterpretKey(uint8_t key, uint8_t keycode) {
 		break;
 
 	case 'a':
-		seq.automode = !seq.automode;
+		seq.livingmode = !seq.livingmode;
 		break;
 
 	case 's':

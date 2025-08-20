@@ -33,30 +33,8 @@ extern EventSequencer seq;
 static char input_buf[INPUT_BUFFER] = {'\0'};
 static int inputIndex = 0;
 
-/***********************************************************************************************/
 
-// Exemple de Fonctions associées aux commandes
-void cmd_b(int argc, int argv[]) {
-    printf("Commande b : ");
-    for (int i = 0; i < argc; i++) {
-        printf("%d ", argv[i]);
-    }
-    printf("\n");
-}
-
-void cmd_led(int argc, int argv[]) {
-    if (argc >= 1) {
-        printf("Allumer LED %d\n", argv[0]);
-    }
-}
-
-void cmd_move(int argc, int argv[]) {
-    printf("Move vers x=%d y=%d\n", argv[0], argv[1]);
-}
-
-
-
-//******************************   Command functions  *************************
+//******************************   Command functions  *************************************************
 
 //-----------------------------------------------------------------------------
 //	Command : c<n>		Ex : c6 followed by "enter" key -> creates 6 events
@@ -94,7 +72,8 @@ void addRegPattern(int argc, int argv[]) {
     }
 }
 
-/*----------------------------------------------------------------------------------------------*/
+/*************************************** Command table **************************************************/
+
 // Table statique des commandes : {"nom de la commande", nombre d'arguments, nom de la fonction associée}
 static const CommandDef commandTable[MAX_COMMANDS] = {
 
@@ -104,8 +83,10 @@ static const CommandDef commandTable[MAX_COMMANDS] = {
     // ajouter d'autres ici...
 };
 
+/********************************************************************************************************/
+
+
 /*---------------------------------------------------------------------------------------------*/
-// Parseur sans heap
 void parseCommand(const char *input) {
     char cmdName[MAX_CMD_LEN];
     int args[MAX_ARGS];

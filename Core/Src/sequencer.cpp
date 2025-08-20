@@ -28,7 +28,7 @@ void EventSequencer::Init(float sr, uint16_t reso, uint32_t max_len) {
 	pool.clear();
 	CreatePattern(4);
 	isRunning = true;
-	automode = false;
+	livingmode = true;
 }
 
 /*---------------------------------------------------------------------------------------------*/
@@ -165,7 +165,7 @@ void EventSequencer::DisplayStatus() {
 
 	printf("/////////// Sequencer status : ////////////\r\n");
 	printf("// Seq is running : %d \r\n", isRunning);
-	printf("// Seq is in automode : %d \r\n", automode);
+	printf("// Seq is in automode : %d \r\n", livingmode);
 	printf("// Sample rate = %ld\r\n", static_cast<uint32_t>(sample_rate_));
 	printf("// Resolution = %d  sample ticks.\r\n", resolution_);
 	printf("// Loop length = %ld  seq ticks.\r\n", loop_len_);
@@ -189,7 +189,7 @@ void EventSequencer::TickAction() {
 /*---------------------------------------------------------------------------------------------*/
 void EventSequencer::LoopAction() {
 	//printf("New loop !\r\n");
-	if (automode) {
+	if (livingmode) {
 		//printf("Automode is ON !\r\n");
 		RandomizeVelo();
 	}

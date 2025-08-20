@@ -27,7 +27,7 @@ public:
 
 	EventSequencer() :
 			isRunning(false),
-			automode(false),
+			livingmode(false),
 			sample_rate_(SAMPLERATE),
 			resolution_(48),
 			sample_counter_(0),
@@ -43,7 +43,7 @@ public:
 	}
 
 	bool isRunning;
-	bool automode;
+	bool livingmode;
 
 	void Init(float sr = 48'000.f, uint16_t reso = 48,
 			uint32_t max_len = 20'000);
