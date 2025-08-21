@@ -121,10 +121,12 @@ void EventSequencer::AddRegularPattern(uint16_t ev_nb, int inst) {
 
 		auto step = static_cast<uint16_t>(std::round(
 				loop_len_ / (float) (ev_nb)));
+		auto shift = GetRandomInteger(0, step - 1);
 
 		for (int i = 0; i < ev_nb; i++) {
 			auto v = GetRandomInteger(MINI_VELO, MIDI_MAXi);
-			auto ev = pool.allocate(i * step, 16 * inst + 9, 3, 4, v);
+			auto t = i * step + shift;
+			auto ev = pool.allocate(t , 16 * inst + 9, 3, 4, v);
 			Add(ev);
 		}
 		TimeSort();

@@ -24,7 +24,7 @@ The sequencer is not step based. You define a loop duration and call for sound e
 These are so-called "stocharythms".  
 You can also do live recording !  
 
-Many debug messages through UART (Pin PA2).  
+Many debug messages through UART (Pin PA2). Please configure your serial port terminal to ISO-8859-15 encoding.    
 
 To improve :  
 [ ] noise during UART transmissions  

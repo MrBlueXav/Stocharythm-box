@@ -20,142 +20,155 @@
 #define MAX_ARGS       8      // nombre max d’arguments par commande
 #define INPUT_BUFFER   32     // longueur max de la ligne saisie
 
-
 //----------------- Structure de commande  ------------------------------------
-struct CommandDef {
-    const char name[MAX_CMD_LEN];
+struct Command {
+    const char* name;
     int expectedArgs;
-    void (*handler)(int argc, int argv[]);
+    void (*func)(int*, int);
 };
 
 //-----------------------------------------------------------------------------
 extern EventSequencer seq;
-static char input_buf[INPUT_BUFFER] = {'\0'};
+static char input_buf[INPUT_BUFFER] = { '\0' };
 static int inputIndex = 0;
 bool multikey = false;
-
 
 //******************************   Command functions  *************************************************
 
 //-----------------------------------------------------------------------------
 //	Command : ca<n>		Ex : ca6 followed by "enter" key -> creates 6 events for each instrument
 //-----------------------------------------------------------------------------
-void AddGeneralPattern(int argc, int argv[]) {
-    if (argc >= 1) {
-        printf("ca: create %d new events for each instrument\r\n", argv[0]);
-        seq.AddGeneralPattern(argv[0]);
-    } else {
-        printf(">>>> Error.  Usage: ca<number>\r\n");
-    }
+void AddGeneralPattern(int* argv, int argc) {
+	if (argc == 1) {
+		printf("ca: create %d new events for each instrument\r\n", argv[0]);
+		seq.AddGeneralPattern(argv[0]);
+	} else {
+		printf(">>>> Error.  Usage: ca<number>\r\n");
+	}
 }
 
 //-----------------------------------------------------------------------------
 //	Command : cn<n>		Ex : cn6 followed by "enter" key -> creates 6 events
 //-----------------------------------------------------------------------------
-void NewPattern(int argc, int argv[]) {
-    if (argc >= 1) {
-        printf("cn : create %d new events\r\n", argv[0]);
-        seq.CreatePattern(argv[0]);
-    } else {
-        printf(">>>> Error.  Usage: cn<number>\r\n");
-    }
+void NewPattern(int* argv, int argc) {
+	if (argc == 1) {
+		printf("cn : create %d new events\r\n", argv[0]);
+		seq.CreatePattern(argv[0]);
+	} else {
+		printf(">>>> Error.  Usage: cn<number>\r\n");
+	}
 }
 
 //-----------------------------------------------------------------------------
 //	Command :  cl<n>		Sets the loop duration at n * 0.1 seconds
 //-----------------------------------------------------------------------------
-void NewLoop(int argc, int argv[]) {
-    if (argc >= 1) {
-        printf("cl : create new loop : %d units\r\n", argv[0]);
-        seq.NewLoop(argv[0]);
-    } else {
-        printf(">>>> Error.  Usage: cl<number>\r\n");
-    }
+void NewLoop(int* argv, int argc) {
+	if (argc == 1) {
+		printf("cl : create new loop : %d units\r\n", argv[0]);
+		seq.NewLoop(argv[0]);
+	} else {
+		printf(">>>> Error.  Usage: cl<number>\r\n");
+	}
 }
 
 //-----------------------------------------------------------------------------
 //	Command : cr<n>,<instr>		Creates n regular events in the loop for instrument #instr
 //-----------------------------------------------------------------------------
-void addRegPattern(int argc, int argv[]) {
-    if (argc >= 1) {
-        printf("cr : add %d new regular events for instrument %d\r\n", argv[0], argv[1]);
-        seq.AddRegularPattern(argv[0], argv[1]);
-    } else {
-        printf(">>>> Error.  Usage: cr<number>,<instr>\r\n");
-    }
+void addRegPattern(int* argv, int argc) {
+	if (argc == 2) {
+		printf("cr : add %d new regular events for instrument %d\r\n", argv[0],
+				argv[1]);
+		seq.AddRegularPattern(argv[0], argv[1]);
+	} else {
+		printf(">>>> Error.  Usage: cr<number>,<instr>\r\n");
+	}
 }
 
 /*************************************** Command table **************************************************/
 
 // Table statique des commandes : {"nom de la commande", nombre d'arguments, nom de la fonction associée}
-static const CommandDef commandTable[MAX_COMMANDS] = {
+static const Command commandTable[MAX_COMMANDS] = {
 
-    { "cn",	1, NewPattern},
-	{ "ca",	1, AddGeneralPattern},
-    { "cl",	1, NewLoop},
-    { "cr",	2, addRegPattern},
-    // ajouter d'autres ici...
-};
+{ "cn", 1, NewPattern },
+{ "ca", 1, AddGeneralPattern },
+{ "cl", 1, NewLoop },
+{ "cr", 2, addRegPattern },
+// ajouter d'autres ici...
+		};
+
+constexpr size_t commandTableSize = sizeof(commandTable) / sizeof(commandTable[0]);
 
 /********************************************************************************************************/
 
-
 /*---------------------------------------------------------------------------------------------*/
 void parseCommand(const char *input) {
-    char cmdName[MAX_CMD_LEN];
-    int args[MAX_ARGS];
-    int argc = 0;
 
-    // --- extraire le nom de commande (jusqu’à un chiffre ou une virgule) ---
-    int i = 0;
-    while (input[i] != '\0' && !isdigit((unsigned char)input[i]) && input[i] != ',' && i < MAX_CMD_LEN - 1) {
-        cmdName[i] = input[i];
-        i++;
-    }
-    cmdName[i] = '\0';
+	char cmdName[MAX_CMD_LEN] = { 0 };
+	int args[MAX_ARGS] = { 0 };
+	int argc = 0;
 
-    // --- extraire les nombres ---
-    argc = 0;
-    while (input[i] != '\0' && argc < MAX_ARGS) {
-        if (isdigit((unsigned char)input[i])) {
-            args[argc++] = strtol(&input[i], nullptr, 10);
-            while (isdigit((unsigned char)input[i])) i++;
-        }
-        if (input[i] == ',') i++;
-        else i++;
-    }
+	size_t i = 0, j = 0;
 
-    // --- rechercher la commande dans la table ---
-    for (unsigned int c = 0; c < MAX_COMMANDS; c++) {
-        if (commandTable[c].name[0] == '\0') break; // fin de table
-        if (strcmp(cmdName, commandTable[c].name) == 0) {
-            if (argc == commandTable[c].expectedArgs) {
-                commandTable[c].handler(argc, args);	// Action !
-            } else {
-                printf("Erreur: commande '%s' attend %d args, recu %d\n",
-                       cmdName, commandTable[c].expectedArgs, argc);
-            }
-            return;
-        }
-    }
+	// --- Étape 1 : Extraire le nom de commande ---
+	while (input[i] != '\0'
+			&& !isdigit((unsigned char) input[i])
+			&& input[i] != ','
+			&& j < MAX_CMD_LEN - 1) {
+		cmdName[j++] = input[i++];
+	}
+	cmdName[j] = '\0';  // Fin de chaîne OK ✅
 
-    printf("Commande inconnue: %s\n", cmdName);
+	if (j == 0) {
+		printf("Erreur: commande vide\n");
+		return;
+	}
+
+	// --- Étape 2 : Extraction des arguments ---
+	while (input[i] != '\0' && argc < MAX_ARGS) {
+		if (isdigit((unsigned char) input[i])) {
+			char *endptr;
+			long val = strtol(&input[i], &endptr, 10); // ✅ conversion sûre
+			args[argc++] = (int) val;
+			i = endptr - input;
+		}
+		if (input[i] == ',') {
+			i++; // avance sur la virgule
+		} else if (!isdigit((unsigned char) input[i]) && input[i] != '\0') {
+			printf("Caractère inattendu: '%c'\n", input[i]);
+			return;
+		}
+	}
+
+	// --- Étape 3 : Recherche dans la table ---
+	for (size_t k = 0; k < commandTableSize; k++) {
+		if (strcmp(cmdName, commandTable[k].name) == 0) {
+			if (argc == commandTable[k].expectedArgs) {
+				commandTable[k].func(args, argc);
+			} else {
+				printf("Erreur: %s attend %d arguments, recu %d\n", cmdName,
+						commandTable[k].expectedArgs, argc);
+			}
+			return;
+		}
+	}
+
+	printf("Commande inconnue: %s\n", cmdName);
 }
 
-// --- feedChar ---
+/*---------------------------------------------------------------------------------------------*/
 void feedChar(char c) {
-    if (c == '\r' || c == '\n') {  // fin de commande
-    	input_buf[inputIndex] = '\0';
-        parseCommand(input_buf);
-        inputIndex = 0;  // reset pour prochaine commande
-        multikey = false;
-    } else if (inputIndex < INPUT_BUFFER - 1) {
-    	input_buf[inputIndex++] = c;
-    } else {
-        // buffer plein, réinitialiser
-        inputIndex = 0;
-        multikey = false;
-    }
+	if (c == '\r' || c == '\n') {  // fin de commande
+		input_buf[inputIndex] = '\0';
+		parseCommand(input_buf);
+		inputIndex = 0;  // reset pour prochaine commande
+		multikey = false;
+	} else if (inputIndex < INPUT_BUFFER - 1) {
+		input_buf[inputIndex++] = c;
+	} else {
+		// buffer plein, réinitialiser
+		inputIndex = 0;
+		multikey = false;
+	}
 }
 // --- Exemple d’utilisation ---
 //int main() {
@@ -164,6 +177,4 @@ void feedChar(char c) {
 //    parseCommand("move10,20");
 //    parseCommand("b3,2"); // Erreur: pas assez d’arguments
 //}
-
-
 
