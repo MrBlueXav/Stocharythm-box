@@ -117,7 +117,8 @@ int main(void)
 	BSP_LED_On(LED4);
 
 	PrintALine();
-	printf(">>>   Bruitenkor !  <<<\n");
+	printf(">>>   Stocharythm Box §§ Bruitenkor !  <<<\n");
+	printf(">>>   by Xavier Halgand, 08/2025  <<<\n");
 	PrintALine();
 
 	SoundGeneratorInit();

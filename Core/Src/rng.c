@@ -91,4 +91,11 @@ uint32_t GetRandom32bits(void)
 	}
 	return r;
 }
+
+// Entier aléatoire dans [min, max]
+uint32_t GetRandomInteger(uint32_t min, uint32_t max) {
+
+	return GetRandom32bits() % (max - min + 1) + min;
+
+}
 /* USER CODE END 1 */

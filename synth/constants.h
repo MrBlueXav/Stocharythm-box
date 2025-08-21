@@ -18,9 +18,10 @@ extern "C" {
 #define MAX_EVENT_NB	200
 
 #define SP_VOICE_NB		6
+#define MINI_VELO		45
 
 /*****************************************************************************************************************/
-#define AUDIO_BUFFER_SIZE_IN_BYTES 		2048 /* AUDIO_BUFFER_SIZE (in bytes) must be a multiple of 8   */
+#define AUDIO_BUFFER_SIZE_IN_BYTES 		256 /* AUDIO_BUFFER_SIZE (in bytes) must be a multiple of 8   */
 #define AUDIO_BUFFER_SIZE       		(AUDIO_BUFFER_SIZE_IN_BYTES / 2) /* AUDIO_BUFFER_SIZE (in 16bits words)  */
 
 #define SAMPLERATE              48000

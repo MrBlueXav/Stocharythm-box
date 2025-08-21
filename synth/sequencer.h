@@ -28,6 +28,7 @@ public:
 	EventSequencer() :
 			isRunning(false),
 			livingmode(false),
+			isRecording(false),
 			sample_rate_(SAMPLERATE),
 			resolution_(48),
 			sample_counter_(0),
@@ -44,17 +45,22 @@ public:
 
 	bool isRunning;
 	bool livingmode;
+	bool isRecording;
 
 	void Init(float sr = 48'000.f, uint16_t reso = 48,
 			uint32_t max_len = 20'000);
 	void Process();
+	void Restart();
 	void CreatePattern(uint16_t ev_nb);
+	void AddGeneralPattern(uint16_t ev_nb);
 	void AddRegularPattern(uint16_t ev_nb, int inst);
 	void NewLoop(uint32_t units);	// units = dixième de secondes
 	void ModifySpeed(float coef);
 	void DisplayPattern();
 	void DisplayStatus();
+	void AddOneMidiEvent(uint32_t position, uint8_t type, uint8_t data1, uint8_t data2, uint8_t data3);
 	void AddOneEvent(uint8_t type);
+	void AddOneEventNow(uint8_t type);
 	void Clear();
 	void RandomizeVelo();
 

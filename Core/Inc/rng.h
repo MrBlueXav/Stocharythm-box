@@ -42,6 +42,7 @@ void MX_RNG_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 uint32_t GetRandom32bits(void);
+uint32_t GetRandomInteger(uint32_t min, uint32_t max);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

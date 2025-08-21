@@ -5,18 +5,18 @@
  *      Author:  Xavier Halgand
  */
 
+#include <keyb_command_parser.h>
 #include <cstring>
 #include <cstdlib>
 #include <cstdio>
 #include <cctype>   // pour isdigit()
 
-#include "keyb_command_parser2.h"
 #include "sequencer.h"
 
 // Paramètres généraux
 
 #define MAX_COMMANDS   20     // nombre max de commandes définies
-#define MAX_CMD_LEN    8      // longueur max du nom de commande
+#define MAX_CMD_LEN    15      // longueur max du nom de commande
 #define MAX_ARGS       8      // nombre max d’arguments par commande
 #define INPUT_BUFFER   32     // longueur max de la ligne saisie
 
@@ -32,43 +32,56 @@ struct CommandDef {
 extern EventSequencer seq;
 static char input_buf[INPUT_BUFFER] = {'\0'};
 static int inputIndex = 0;
+bool multikey = false;
 
 
 //******************************   Command functions  *************************************************
 
 //-----------------------------------------------------------------------------
-//	Command : c<n>		Ex : c6 followed by "enter" key -> creates 6 events
+//	Command : ca<n>		Ex : ca6 followed by "enter" key -> creates 6 events for each instrument
 //-----------------------------------------------------------------------------
-void NewPatterns(int argc, int argv[]) {
+void AddGeneralPattern(int argc, int argv[]) {
     if (argc >= 1) {
-        printf("c: create %d new events\r\n", argv[0]);
-        seq.CreatePattern(argv[0]);
+        printf("ca: create %d new events for each instrument\r\n", argv[0]);
+        seq.AddGeneralPattern(argv[0]);
     } else {
-        printf(">>>> Error.  Usage: c<number>\r\n");
+        printf(">>>> Error.  Usage: ca<number>\r\n");
     }
 }
 
 //-----------------------------------------------------------------------------
-//	Command : l<n>		Sets the loop duration at n * 0.1 seconds
+//	Command : cn<n>		Ex : cn6 followed by "enter" key -> creates 6 events
+//-----------------------------------------------------------------------------
+void NewPattern(int argc, int argv[]) {
+    if (argc >= 1) {
+        printf("cn : create %d new events\r\n", argv[0]);
+        seq.CreatePattern(argv[0]);
+    } else {
+        printf(">>>> Error.  Usage: cn<number>\r\n");
+    }
+}
+
+//-----------------------------------------------------------------------------
+//	Command :  cl<n>		Sets the loop duration at n * 0.1 seconds
 //-----------------------------------------------------------------------------
 void NewLoop(int argc, int argv[]) {
     if (argc >= 1) {
-        printf("l: create new loop : %d units\r\n", argv[0]);
+        printf("cl : create new loop : %d units\r\n", argv[0]);
         seq.NewLoop(argv[0]);
     } else {
-        printf(">>>> Error.  Usage: l<number>\r\n");
+        printf(">>>> Error.  Usage: cl<number>\r\n");
     }
 }
 
 //-----------------------------------------------------------------------------
-//	Command : b<n>,<instr>		Creates n regular events in the loop for instrument #instr
+//	Command : cr<n>,<instr>		Creates n regular events in the loop for instrument #instr
 //-----------------------------------------------------------------------------
 void addRegPattern(int argc, int argv[]) {
     if (argc >= 1) {
-        printf("b: add %d new regular events for instrument %d\r\n", argv[0], argv[1]);
+        printf("cr : add %d new regular events for instrument %d\r\n", argv[0], argv[1]);
         seq.AddRegularPattern(argv[0], argv[1]);
     } else {
-        printf(">>>> Error.  Usage: b<number>,<instr>\r\n");
+        printf(">>>> Error.  Usage: cr<number>,<instr>\r\n");
     }
 }
 
@@ -77,9 +90,10 @@ void addRegPattern(int argc, int argv[]) {
 // Table statique des commandes : {"nom de la commande", nombre d'arguments, nom de la fonction associée}
 static const CommandDef commandTable[MAX_COMMANDS] = {
 
-    { "c",	1, NewPatterns    },
-    { "l",	1, NewLoop  },
-    { "b",	2, addRegPattern },
+    { "cn",	1, NewPattern},
+	{ "ca",	1, AddGeneralPattern},
+    { "cl",	1, NewLoop},
+    { "cr",	2, addRegPattern},
     // ajouter d'autres ici...
 };
 
@@ -134,11 +148,13 @@ void feedChar(char c) {
     	input_buf[inputIndex] = '\0';
         parseCommand(input_buf);
         inputIndex = 0;  // reset pour prochaine commande
+        multikey = false;
     } else if (inputIndex < INPUT_BUFFER - 1) {
     	input_buf[inputIndex++] = c;
     } else {
         // buffer plein, réinitialiser
         inputIndex = 0;
+        multikey = false;
     }
 }
 // --- Exemple d’utilisation ---
