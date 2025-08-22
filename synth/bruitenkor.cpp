@@ -23,6 +23,7 @@
 #include "SamplePlayer.h"
 #include "rng.h"
 #include "stereo.hpp"
+#include "tim.h"
 
 //-----------------------------------------------------------------------------------------------
 
@@ -115,11 +116,13 @@ void InterpretKey(uint8_t key, uint8_t keycode) {
 
 		case '*':
 			seq.isRecording = true;
+			blinkLED(1);
 			printf("Sequencer is recording ! \n\r");
 			break;
 
 		case '/':
 			seq.isRecording = false;
+			blinkLED(0);
 			printf("Sequencer is not recording ! \n\r");
 			break;
 

@@ -11,6 +11,7 @@
 #include "bruitenkor.h"
 #include "objectpool.hpp"
 #include "rng.h"
+#include "tim.h"
 
 #include <stdio.h>
 #include <cmath>
@@ -265,6 +266,7 @@ void EventSequencer::TickAction() {
 /*---------------------------------------------------------------------------------------------*/
 void EventSequencer::LoopAction() {
 	//printf("New loop !\r\n");
+	pulseLED();
 	if (livingmode) {
 		//printf("Automode is ON !\r\n");
 		RandomizeVelo();

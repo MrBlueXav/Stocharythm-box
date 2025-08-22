@@ -41,6 +41,10 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
+#define LED_G	LED4
+#define LED_O	LED3
+#define LED_B	LED6
+#define LED_R	LED5
 
 /* USER CODE END EC */
 

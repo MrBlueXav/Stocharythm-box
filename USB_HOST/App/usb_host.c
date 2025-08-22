@@ -93,41 +93,47 @@ void USBH_HID_EventCallback(USBH_HandleTypeDef *phost) {
 /* USER CODE END 1 */
 
 /**
- * Init USB host library, add supported class and start the library
- * @retval None
- */
-void MX_USB_HOST_Init(void) {
-	/* USER CODE BEGIN USB_HOST_Init_PreTreatment */
+  * Init USB host library, add supported class and start the library
+  * @retval None
+  */
+void MX_USB_HOST_Init(void)
+{
+  /* USER CODE BEGIN USB_HOST_Init_PreTreatment */
 
-	/* USER CODE END USB_HOST_Init_PreTreatment */
+  /* USER CODE END USB_HOST_Init_PreTreatment */
 
-	/* Init host Library, add supported class and start the library. */
-	if (USBH_Init(&hUsbHostFS, USBH_UserProcess, HOST_FS) != USBH_OK) {
-		Error_Handler();
-	}
-	if (USBH_RegisterClass(&hUsbHostFS, USBH_HID_CLASS) != USBH_OK) {
-		Error_Handler();
-	}
-	if (USBH_Start(&hUsbHostFS) != USBH_OK) {
-		Error_Handler();
-	}
-	/* USER CODE BEGIN USB_HOST_Init_PostTreatment */
+  /* Init host Library, add supported class and start the library. */
+  if (USBH_Init(&hUsbHostFS, USBH_UserProcess, HOST_FS) != USBH_OK)
+  {
+    Error_Handler();
+  }
+  if (USBH_RegisterClass(&hUsbHostFS, USBH_HID_CLASS) != USBH_OK)
+  {
+    Error_Handler();
+  }
+  if (USBH_Start(&hUsbHostFS) != USBH_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USB_HOST_Init_PostTreatment */
 
-	/* USER CODE END USB_HOST_Init_PostTreatment */
+  /* USER CODE END USB_HOST_Init_PostTreatment */
 }
 
 /*
  * Background task
  */
-void MX_USB_HOST_Process(void) {
-	/* USB Host Background task */
-	USBH_Process(&hUsbHostFS);
+void MX_USB_HOST_Process(void)
+{
+  /* USB Host Background task */
+  USBH_Process(&hUsbHostFS);
 }
 /*
  * user callback definition
  */
-static void USBH_UserProcess(USBH_HandleTypeDef *phost, uint8_t id) {
-	/* USER CODE BEGIN CALL_BACK_1 */
+static void USBH_UserProcess  (USBH_HandleTypeDef *phost, uint8_t id)
+{
+  /* USER CODE BEGIN CALL_BACK_1 */
 	switch (id) {
 	case HOST_USER_SELECT_CONFIGURATION:
 		break;
@@ -150,14 +156,14 @@ static void USBH_UserProcess(USBH_HandleTypeDef *phost, uint8_t id) {
 	default:
 		break;
 	}
-	/* USER CODE END CALL_BACK_1 */
+  /* USER CODE END CALL_BACK_1 */
 }
 
 /**
- * @}
- */
+  * @}
+  */
 
 /**
- * @}
- */
+  * @}
+  */
 
