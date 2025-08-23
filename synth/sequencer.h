@@ -51,9 +51,12 @@ public:
 			uint32_t max_len = 20'000);
 	void Process();
 	void Restart();
-	void CreatePattern(uint16_t ev_nb);
+	void CreateEvents(uint16_t ev_nb);
+	void DeleteEvents(uint16_t ev_nb);
 	void AddGeneralPattern(uint16_t ev_nb);
 	void AddRegularPattern(uint16_t ev_nb, int inst);
+	void MixUp();
+	void Quantize(uint16_t div);
 	void NewLoop(uint32_t units);	// units = dixième de secondes
 	void ModifySpeed(float coef);
 	void DisplayPattern();

@@ -11,7 +11,7 @@
 #include "midi_types.h"
 
 void InterpretEvent(MIDIevent* ev);
-
+uint8_t GetRandomInstr(void);
 
 
 #endif /* INC_BRUITENKOR_HPP_ */

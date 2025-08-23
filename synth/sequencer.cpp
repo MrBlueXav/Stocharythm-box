@@ -30,7 +30,7 @@ void EventSequencer::Init(float sr, uint16_t reso, uint32_t max_len) {
 	livingmode = true;
 	isRecording = false;
 	Restart();
-	CreatePattern(4);
+	CreateEvents(4);
 }
 
 /*---------------------------------------------------------------------------------------------*/
@@ -51,6 +51,20 @@ void EventSequencer::RandomizeVelo() {
 }
 
 /*---------------------------------------------------------------------------------------------*/
+void EventSequencer::Quantize(uint16_t div) {
+
+	auto step = (loop_len_ / (float)(div));
+	for (auto ev : event_list_) {
+		auto pos = static_cast<uint32_t>(std::round(((ev->position) / step)) * std::round(step));
+		if (pos >= loop_len_)
+			ev->position = 0;
+		else
+			ev->position = pos;
+	}
+	TimeSort();	// Because of position 0
+}
+
+/*---------------------------------------------------------------------------------------------*/
 void EventSequencer::Add(MIDIevent *ev) {
 
 	if (event_counter_ < max_event_) {
@@ -68,15 +82,37 @@ void EventSequencer::TimeSort() {
 }
 
 /*---------------------------------------------------------------------------------------------*/
-void EventSequencer::CreatePattern(uint16_t ev_nb) {
+void EventSequencer::CreateEvents(uint16_t ev_nb) {
 
 	for (uint16_t i = 0; i < ev_nb; i++) {
 		auto t = (GetRandom32bits() % loop_len_);
-		auto type = 9 + 16 * (GetRandom32bits() % SP_VOICE_NB);
+		auto type = GetRandomInstr();
 		auto v = GetRandomInteger(MINI_VELO, MIDI_MAXi);
 		AddOneMidiEvent(t, type, 7, 8, v);
 	}
 	//TimeSort();
+}
+
+/*---------------------------------------------------------------------------------------------*/
+void EventSequencer::DeleteEvents(uint16_t ev_nb) {
+
+	if (event_list_.empty() || ev_nb == 0) return;
+
+	while (ev_nb-- > 0 && !event_list_.empty()) {
+
+	        size_t index = GetRandomInteger(0, event_list_.size() - 1);
+
+	        // Avancer jusqu’à l’élément choisi
+	        auto it = event_list_.begin();
+	        std::advance(it, index);
+
+	        // Libérer l’objet dans le pool
+	        pool.free(*it);
+
+	        // Enlever le pointeur de la liste
+	        it = event_list_.erase(it);
+	        event_counter_--;
+	    }
 }
 
 /*---------------------------------------------------------------------------------------------*/
@@ -135,7 +171,7 @@ void EventSequencer::AddRegularPattern(uint16_t ev_nb, int inst) {
 }
 
 /*---------------------------------------------------------------------------------------------*/
-void EventSequencer::NewLoop(uint32_t units) { // units = dixième de secondes (0.1 sec)
+void EventSequencer::NewLoop(uint32_t units) { // units = dixième de secondes (1 unit = 0.1 sec)
 
 	auto f = sample_rate_ * units / resolution_ / 10;
 	auto len = static_cast<uint32_t>(std::round(f));
@@ -214,6 +250,16 @@ void EventSequencer::AddOneEventNow(uint8_t type) {
 //		printf(">>>>>>>  Number of Events : %u\r\n", event_counter_);
 //		PrintALine();
 	}
+}
+
+/*---------------------------------------------------------------------------------------------*/
+void EventSequencer::MixUp() {
+
+	for (auto ev : event_list_) {
+		auto t = (GetRandom32bits() % loop_len_);
+		ev->position = t;
+	}
+	TimeSort();
 }
 /*---------------------------------------------------------------------------------------------*/
 void EventSequencer::DisplayPattern() {

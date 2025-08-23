@@ -52,6 +52,11 @@ static Svf _CCM_ filter;
 //static Freeverb rev1;	// Freeverb (stereo) : 100kB in RAM
 static MiniFreeverb rev _CCM_; // Mini Freeverb (mono) : 23kB in RAM
 
+static const uint8_t instr_code[] = { 0x09, 0x19, 0x29, 0x39, 0x49, 0x59, 0xA9,
+		0xB9, 0xC9 };
+static constexpr size_t number_of_instr = sizeof(instr_code)
+		/ sizeof(instr_code[0]);
+
 /*----------------------------------------------------------------------------------------------*/
 void samplePlayersRandomInit() {
 
@@ -87,6 +92,13 @@ void SoundGeneratorInit(void) {
 }
 
 /*----------------------------------------------------------------------------------------------*/
+uint8_t GetRandomInstr(void) {
+
+	return instr_code[GetRandom32bits() % number_of_instr];
+
+}
+
+/*----------------------------------------------------------------------------------------------*/
 void InterpretKey(uint8_t key, uint8_t keycode) {
 
 	if (multikey == true)	// Multi key commands -> parser
@@ -97,7 +109,7 @@ void InterpretKey(uint8_t key, uint8_t keycode) {
 
 		switch (key) {
 
-		case 'c':	// Beginning of a multi key command
+		case 'c':							// Beginning of a multi key command
 			multikey = true;
 			feedChar(key);
 			break;
@@ -126,9 +138,13 @@ void InterpretKey(uint8_t key, uint8_t keycode) {
 			printf("Sequencer is not recording ! \n\r");
 			break;
 
-		case '!':
+		case '!':									//	Play/stop
 			seq.isRunning = !seq.isRunning;
 			seq.Restart();
+			break;
+
+		case ' ':									//	Play/pause
+			seq.isRunning = !seq.isRunning;
 			break;
 
 		case '+':
@@ -235,12 +251,11 @@ void InterpretKey(uint8_t key, uint8_t keycode) {
 			break;
 
 		case 'n':
-			seq.CreatePattern(4);
-			seq.DisplayPattern();
+			seq.CreateEvents(2);
 			break;
 
-		case 'd':
-			seq.DisplayPattern();
+		case 'b':
+			seq.DeleteEvents(2);
 			break;
 
 		case 'v':
@@ -252,16 +267,20 @@ void InterpretKey(uint8_t key, uint8_t keycode) {
 			seq.livingmode = !seq.livingmode;
 			break;
 
-		case 's':
-			seq.DisplayStatus();
+		case 'm':
+			seq.MixUp();
 			break;
 
 		case 'z':
 			samplePlayersRandomInit();
 			break;
 
-		case ' ':
-			seq.isRunning = !seq.isRunning;
+		case 'd':
+			seq.DisplayPattern();
+			break;
+
+		case 's':
+			seq.DisplayStatus();
 			break;
 
 		default:

@@ -33,6 +33,7 @@ To improve :
 [ ] remove clicks at the end of some samples  
 [ ] mute/unmute instruments  
 [ ] delete instrument events in loop  
+[x] more LED indicators  
 
 - - - - 
 ### Keyboard control :  
@@ -45,7 +46,8 @@ To improve :
 - left and and right arrows : slow down or speed up  
 - `*` -> start live recording  
 - `/` -> stop live recording  
-- `n` -> add 4 random events  
+- `n` -> add 2 random events  
+- `b` -> delete 2 random events  
 - `T` : add 1 event played by instrument 0 / `t` : play or record instrument 0  
 - `Y` : add 1 event played by instrument 1   / `y` : play or record instrument 1  
 - `U` : add 1 event played by instrument 2   / `u` : play or record instrument 2  
@@ -55,7 +57,10 @@ To improve :
 - `H` : add 1 Synthetic Bass Drum event / `h` : play or record Synthetic Bass Drum  
 - `J` : add 1 white noise event  / `j` : play or record white noise  
 - `K` : add 1 808 snare event   / `k` : play or record snare  
+- `m` : mix up all events in loop  
 - `z` : change the 6 samples  
+- `a` : randomize velocities of events at the beginning of each loop  
+- `v` : randomize velocities of all events
 - `s` : display sequencer status  
 - `d` : display list of events in the loop  
 
@@ -66,6 +71,7 @@ They must all start with letter `c`, no space, just comma to separate numbers.
 - `ca` :		ca<*n*\>	:	Creates *n* random events for each instrument  (ex : `ca4`)  
 - `cr` :		cr<*n*\>,<*instr*\>	:	Creates *n* regular events in the loop for instrument *instr*  (ex : `cr1,5` )  
 - `cn` :		cn<*n*\>	:	Creates *n* events  (ex : `cn10` )  
+- `cq` : cq<*n*\> : Quantize events on a n steps loop (original position is lost)  
 
 - - - - 
 ### Developer notes :

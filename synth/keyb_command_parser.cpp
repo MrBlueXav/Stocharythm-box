@@ -38,7 +38,7 @@ bool multikey = false;
 //-----------------------------------------------------------------------------
 //	Command : ca<n>		Ex : ca6 followed by "enter" key -> creates 6 events for each instrument
 //-----------------------------------------------------------------------------
-void AddGeneralPattern(int* argv, int argc) {
+void addGeneralPattern(int* argv, int argc) {
 	if (argc == 1) {
 		printf("ca: create %d new events for each instrument\r\n", argv[0]);
 		seq.AddGeneralPattern(argv[0]);
@@ -50,10 +50,10 @@ void AddGeneralPattern(int* argv, int argc) {
 //-----------------------------------------------------------------------------
 //	Command : cn<n>		Ex : cn6 followed by "enter" key -> creates 6 events
 //-----------------------------------------------------------------------------
-void NewPattern(int* argv, int argc) {
+void newPattern(int* argv, int argc) {
 	if (argc == 1) {
 		printf("cn : create %d new events\r\n", argv[0]);
-		seq.CreatePattern(argv[0]);
+		seq.CreateEvents(argv[0]);
 	} else {
 		printf(">>>> Error.  Usage: cn<number>\r\n");
 	}
@@ -62,7 +62,7 @@ void NewPattern(int* argv, int argc) {
 //-----------------------------------------------------------------------------
 //	Command :  cl<n>		Sets the loop duration at n * 0.1 seconds
 //-----------------------------------------------------------------------------
-void NewLoop(int* argv, int argc) {
+void newLoop(int* argv, int argc) {
 	if (argc == 1) {
 		printf("cl : create new loop : %d units\r\n", argv[0]);
 		seq.NewLoop(argv[0]);
@@ -84,15 +84,28 @@ void addRegPattern(int* argv, int argc) {
 	}
 }
 
+//-----------------------------------------------------------------------------
+//	Command : cq<n>		quantize position of all events at 1/n of loop
+//-----------------------------------------------------------------------------
+void quantize(int* argv, int argc) {
+	if (argc == 1) {
+		printf("cq : quantize events on grid : 1/%d\r\n", argv[0]);
+		seq.Quantize(argv[0]);
+	} else {
+		printf(">>>> Error.  Usage: cq<number>\r\n");
+	}
+}
+
 /*************************************** Command table **************************************************/
 
 // Table statique des commandes : {"nom de la commande", nombre d'arguments, nom de la fonction associée}
 static const Command commandTable[MAX_COMMANDS] = {
 
-{ "cn", 1, NewPattern },
-{ "ca", 1, AddGeneralPattern },
-{ "cl", 1, NewLoop },
+{ "cn", 1, newPattern },
+{ "ca", 1, addGeneralPattern },
+{ "cl", 1, newLoop },
 { "cr", 2, addRegPattern },
+{ "cq", 1, quantize },
 // ajouter d'autres ici...
 		};
 
