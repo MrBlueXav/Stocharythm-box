@@ -137,7 +137,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 		compteur3++;
 		if (compteur3 % 2 == 0) {
 
-			transmit_UART_block();
+			//transmit_UART_block();
 
 		}
 	}

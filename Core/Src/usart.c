@@ -21,10 +21,15 @@
 #include "usart.h"
 
 /* USER CODE BEGIN 0 */
+
+#include "stm32f4_discovery.h"
 #include "retarget.h"
+#include "ring_buffer.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
+
 /* USER CODE END 0 */
 
 UART_HandleTypeDef huart2;
@@ -117,64 +122,49 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef *uartHandle) {
 
 /* USER CODE BEGIN 1 */
 
-// ----------------------------
-// Configuration des buffers
-#define NB_BUFFERS 128   // Nombre de blocs disponibles
-#define BUF_SIZE   16  // Taille de chaque bloc en octets
+// Buffers RX et TX ********************************************
+//static char rx_storage[128];
+static char tx_storage[2048];
+//static ring_buffer_t rx_rb;
+static ring_buffer_t tx_rb;
 
-// Structure d’un bloc : données + longueur réelle
-typedef struct {
-	uint8_t data[BUF_SIZE];  // Données à transmettre
-	uint8_t len;             // Nombre d’octets valides dans ce bloc
-} tx_block_t;
+// Variable temporaire pour RX
+//static uint8_t rx_byte;
 
-// Tableau de blocs pour la file d’attente UART
-tx_block_t tx_buffers[NB_BUFFERS];
+/*-----------------------------------------------------------------------------------------------*/
+void uart_app_init(void) {
+	//rb_init(&rx_rb, rx_storage, sizeof(rx_storage));
+	rb_init(&tx_rb, tx_storage, sizeof(tx_storage));
 
-// Index pour écrire/ajouter un bloc
-volatile uint8_t tx_write_idx = 0;
-
-// Index pour lire/envoyer un bloc
-volatile uint8_t tx_read_idx = 0;
-
-// Nombre de blocs remplis dans la file
-volatile uint8_t tx_count = 0;
-
-// Position dans le bloc courant (0..len-1)
-volatile uint8_t tx_pos = 0;
-
-// Flag indiquant qu’un bloc est en cours d’envoi
-volatile uint8_t sending = 0;
-
-// ----------------------------
-// Fonction pour ajouter des données à la file UART
-// Peut recevoir un flux de n’importe quelle taille
-void uart_queue_data(const uint8_t *data, uint16_t size) {
-	uint16_t offset = 0; // Position dans le flux à envoyer
-
-	// Tant qu’il reste des octets à envoyer
-	while (offset < size) {
-		// Si la file est pleine, on s’arrête
-		if (tx_count >= NB_BUFFERS)
-			break;
-
-		tx_block_t *blk = (tx_block_t*) &tx_buffers[tx_write_idx];
-
-		// Nombre d’octets à mettre dans ce bloc (max BUF_SIZE)
-		uint8_t space = BUF_SIZE;
-		blk->len = (size - offset > space) ? space : (size - offset);
-
-		// Copier les octets dans le bloc
-		for (int i = 0; i < blk->len; i++)
-			blk->data[i] = data[offset + i];
-
-		// Avancer dans le flux et dans la file
-		offset += blk->len;
-		tx_write_idx = (tx_write_idx + 1) % NB_BUFFERS;
-		tx_count++;
-	}
+	// Lancer la réception d’un octet
+	//HAL_UART_Receive_IT(&huart2, &rx_byte, 1);
 }
 
+/*-----------------------------------------------------------------------------------------------*/
+bool uart_send(const char *s) {
+	bool kickstart = rb_is_empty(&tx_rb);  // faut-il lancer l’IT ?
+
+	// Mettre la chaîne dans le buffer
+	while (*s) {
+		while (!rb_push(&tx_rb, *s)) { 		// Tant que le buffer est plein...
+			HAL_Delay(1);					// on attend.
+			//return false; // buffer plein
+		}
+		s++;
+	}
+
+	// Si l’UART était inactif, on démarre la première émission
+	if (kickstart) {
+		char c;
+		if (rb_pop(&tx_rb, &c)) {
+			HAL_UART_Transmit_IT(&huart2, (uint8_t*) &c, 1);
+		}
+	}
+
+	return true;
+}
+
+/*-----------------------------------------------------------------------------------------------*/
 void uart_printf(const char *fmt, ...) {
 	char buf[128]; // buffer temporaire pour la chaîne formatée
 	va_list args;
@@ -190,50 +180,14 @@ void uart_printf(const char *fmt, ...) {
 			len = sizeof(buf);
 
 		// Envoie via les blocs UART
-		uart_queue_data((uint8_t*) buf, len);
+		//uart_queue_data((uint8_t*) buf, len);
+		bool ok = uart_send(buf);
+		if (!ok)
+			BSP_LED_On(LED5);		// red
 	}
 }
 
-// Appelée par HAL_TIM_PeriodElapsedCallback(...)
-void transmit_UART_block(void) {
-	if (!sending && tx_count > 0) {
-		tx_block_t *blk = &tx_buffers[tx_read_idx];
-		sending = 1;
-		HAL_UART_Transmit_IT(&huart2, blk->data, blk->len);
-	}
-}
 /*******************************************************************************************************************************/
-//void uart2_printf(const char *fmt, ...) {
-//
-//	va_list args;
-//	va_start(args, fmt);
-//	int len = vsnprintf(buff, sizeof(buff), fmt, args);
-//	va_end(args);
-//
-//	if (len > 0) {
-//		// Attendre que la transmission précédente soit finie
-//		while (uart2_tx_busy) {
-//			// on peut mettre __NOP(); ici
-//		}
-//		uart2_tx_busy = 1;
-//		if (HAL_UART_Transmit_IT(&huart2, (uint8_t*) buff, (uint16_t) len) != HAL_OK) {
-//			uart2_tx_busy = 0; // libère si erreur
-//		}
-//	}
-//	va_list args;
-//	va_start(args, fmt);
-//	int len = vsnprintf(buff, sizeof(buff), fmt, args);
-//	va_end(args);
-//	if (len > 0) {
-//		for (;;) {
-//			HAL_StatusTypeDef s = HAL_UART_Transmit_IT(&huart2, (uint8_t*) buff, (uint16_t) len);
-//			if (s == HAL_ERROR)
-//				Error_Handler();
-//			if (s == HAL_OK)
-//				break;
-//		}
-//	}
-//}
 void uart_IT_Test(void) {
 
 	//uint8_t test3[] = ">>>  <<< ####*******  test uart_queue_data(...)  azertyuiop\r\n";
@@ -242,6 +196,9 @@ void uart_IT_Test(void) {
 		//uart_queue_data(test3, sizeof(test3) - 1);
 	}
 }
+
+/*-----------------------------------------------------------------------------------------------*/
+
 /**
  * @brief  Tx Transfer completed callbacks.
  * @param  huart  Pointer to a UART_HandleTypeDef structure that contains
@@ -251,10 +208,14 @@ void uart_IT_Test(void) {
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 	if (huart->Instance == USART2) {
 
-		// Bloc terminé → passer au bloc suivant
-		tx_read_idx = (tx_read_idx + 1) % NB_BUFFERS;
-		tx_count--;
-		sending = 0;
+		char c;
+		if (rb_pop(&tx_rb, &c)) {
+			// Envoyer le suivant
+			HAL_UART_Transmit_IT(huart, (uint8_t*) &c, 1);
+		}
 	}
 }
+
+
+// Event : position = 302 || type = 0X59 || data1 = 117 || data2 = 108 || data3 = 100 ||
 /* USER CODE END 1 */

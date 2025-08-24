@@ -118,6 +118,8 @@ int main(void)
 	/* Start timer counters for blink / impulse LEDs */
 	HAL_TIM_Base_Start_IT(&htim2);
 
+	uart_app_init();
+
 	PrintALine();
 	printf(">>>   Stocharythm Box ~~ Bruitenkor !  <<<\n");	// §§
 	printf(">>>   by Xavier Halgand, 08/2025  <<<\n");
