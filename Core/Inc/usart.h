@@ -41,8 +41,9 @@ extern UART_HandleTypeDef huart2;
 void MX_USART2_UART_Init(void);
 
 /* USER CODE BEGIN Prototypes */
+void transmit_UART_block(void);
 void uart_IT_Test(void);
-void uart2_printf(const char *fmt, ...);
+void uart_printf(const char *fmt, ...);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

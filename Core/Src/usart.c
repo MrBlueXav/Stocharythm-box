@@ -117,27 +117,109 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef *uartHandle) {
 
 /* USER CODE BEGIN 1 */
 
-static char buff[128] = { 0 };
-static volatile uint8_t uart2_tx_busy = 0;
+// ----------------------------
+// Configuration des buffers
+#define NB_BUFFERS 128   // Nombre de blocs disponibles
+#define BUF_SIZE   16  // Taille de chaque bloc en octets
 
-void uart2_printf(const char *fmt, ...) {
+// Structure d’un bloc : données + longueur réelle
+typedef struct {
+	uint8_t data[BUF_SIZE];  // Données à transmettre
+	uint8_t len;             // Nombre d’octets valides dans ce bloc
+} tx_block_t;
 
+// Tableau de blocs pour la file d’attente UART
+tx_block_t tx_buffers[NB_BUFFERS];
+
+// Index pour écrire/ajouter un bloc
+volatile uint8_t tx_write_idx = 0;
+
+// Index pour lire/envoyer un bloc
+volatile uint8_t tx_read_idx = 0;
+
+// Nombre de blocs remplis dans la file
+volatile uint8_t tx_count = 0;
+
+// Position dans le bloc courant (0..len-1)
+volatile uint8_t tx_pos = 0;
+
+// Flag indiquant qu’un bloc est en cours d’envoi
+volatile uint8_t sending = 0;
+
+// ----------------------------
+// Fonction pour ajouter des données à la file UART
+// Peut recevoir un flux de n’importe quelle taille
+void uart_queue_data(const uint8_t *data, uint16_t size) {
+	uint16_t offset = 0; // Position dans le flux à envoyer
+
+	// Tant qu’il reste des octets à envoyer
+	while (offset < size) {
+		// Si la file est pleine, on s’arrête
+		if (tx_count >= NB_BUFFERS)
+			break;
+
+		tx_block_t *blk = (tx_block_t*) &tx_buffers[tx_write_idx];
+
+		// Nombre d’octets à mettre dans ce bloc (max BUF_SIZE)
+		uint8_t space = BUF_SIZE;
+		blk->len = (size - offset > space) ? space : (size - offset);
+
+		// Copier les octets dans le bloc
+		for (int i = 0; i < blk->len; i++)
+			blk->data[i] = data[offset + i];
+
+		// Avancer dans le flux et dans la file
+		offset += blk->len;
+		tx_write_idx = (tx_write_idx + 1) % NB_BUFFERS;
+		tx_count++;
+	}
+}
+
+void uart_printf(const char *fmt, ...) {
+	char buf[128]; // buffer temporaire pour la chaîne formatée
 	va_list args;
 	va_start(args, fmt);
-	int len = vsnprintf(buff, sizeof(buff), fmt, args);
+
+	// Génère la chaîne formatée
+	int len = vsnprintf(buf, sizeof(buf), fmt, args);
 	va_end(args);
 
 	if (len > 0) {
-		// Attendre que la transmission précédente soit finie
-		while (uart2_tx_busy) {
-			// on peut mettre __NOP(); ici
-		}
-		uart2_tx_busy = 1;
-		if (HAL_UART_Transmit_IT(&huart2, (uint8_t*) buff, (uint16_t) len) != HAL_OK) {
-			uart2_tx_busy = 0; // libère si erreur
-		}
-	}
+		// S’assurer de ne pas dépasser la taille du buffer
+		if (len > sizeof(buf))
+			len = sizeof(buf);
 
+		// Envoie via les blocs UART
+		uart_queue_data((uint8_t*) buf, len);
+	}
+}
+
+// Appelée par HAL_TIM_PeriodElapsedCallback(...)
+void transmit_UART_block(void) {
+	if (!sending && tx_count > 0) {
+		tx_block_t *blk = &tx_buffers[tx_read_idx];
+		sending = 1;
+		HAL_UART_Transmit_IT(&huart2, blk->data, blk->len);
+	}
+}
+/*******************************************************************************************************************************/
+//void uart2_printf(const char *fmt, ...) {
+//
+//	va_list args;
+//	va_start(args, fmt);
+//	int len = vsnprintf(buff, sizeof(buff), fmt, args);
+//	va_end(args);
+//
+//	if (len > 0) {
+//		// Attendre que la transmission précédente soit finie
+//		while (uart2_tx_busy) {
+//			// on peut mettre __NOP(); ici
+//		}
+//		uart2_tx_busy = 1;
+//		if (HAL_UART_Transmit_IT(&huart2, (uint8_t*) buff, (uint16_t) len) != HAL_OK) {
+//			uart2_tx_busy = 0; // libère si erreur
+//		}
+//	}
 //	va_list args;
 //	va_start(args, fmt);
 //	int len = vsnprintf(buff, sizeof(buff), fmt, args);
@@ -151,11 +233,13 @@ void uart2_printf(const char *fmt, ...) {
 //				break;
 //		}
 //	}
-}
-
+//}
 void uart_IT_Test(void) {
+
+	//uint8_t test3[] = ">>>  <<< ####*******  test uart_queue_data(...)  azertyuiop\r\n";
 	for (int ct = 0; ct < 20; ct++) {
-		uart2_printf(">>> %d <<< ####*******  test uart2_printf  azertyuiop\r\n", ct + 1);
+		uart_printf(">>> %d <<< ####*******  test uart_printf  azertyuiop\r\n", ct + 1);
+		//uart_queue_data(test3, sizeof(test3) - 1);
 	}
 }
 /**
@@ -166,7 +250,11 @@ void uart_IT_Test(void) {
  */
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 	if (huart->Instance == USART2) {
-		uart2_tx_busy = 0;
+
+		// Bloc terminé → passer au bloc suivant
+		tx_read_idx = (tx_read_idx + 1) % NB_BUFFERS;
+		tx_count--;
+		sending = 0;
 	}
 }
 /* USER CODE END 1 */
