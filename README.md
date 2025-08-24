@@ -21,7 +21,7 @@ FX : simple reverb based on Freeverb (MiniFreeverb.h)
 Mono output.  
 
 The sequencer is not step based. You define a loop duration and call for sound events which are randomly dispatched in the loop.  
-These are so-called "stocharythms".  
+These are so-called "stocharythms".  You can however quantize their position on a defined grid.
 You can also do live recording !  
 
 Many debug messages through UART (Pin PA2). Please configure your serial port terminal to ISO-8859-15 encoding.    
@@ -82,18 +82,16 @@ It should be easily tailored for other powerful STM32 mcu (cortex M33, M4, M7, M
 **Keyboard configuration** :  
 - Keyboard layout is in ``azerty_hid_map.h`` (This one is for AZERTY french keyboards, sorry)  
 - For mapping single key functions, in file `bruitenkor.cpp`, modify function : `void InterpretKey(uint8_t key, uint8_t keycode)`  
-- You can define new multi key functions in file ``keyb_command_parser.cpp``, don't forget to fill also the table ``static const CommandDef commandTable[MAX_COMMANDS] = {...}``  
+- You can define new multi key functions in file ``keyb_command_parser.cpp``, don't forget to fill also the table ``static const Command commandTable[MAX_COMMANDS] = {...}``  
 
 
 There are several Git branches :  
 - **Stocharythm**    
-- Bruitenkor  
-- USBH_HID  
 - Simple_demo : minimal synth platform  
-- master  
 
 
 
-<<< *By Xavier Halgand, Summer 2025* >>>  
+
+<<< By *Xavier Halgand*, Summer 2025 >>>  
 Thanks : Electrosmith/DaisySP, Emilie Gillet, STM32 team, ChatGPT, ...
 

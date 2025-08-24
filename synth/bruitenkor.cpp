@@ -24,6 +24,7 @@
 #include "rng.h"
 #include "stereo.hpp"
 #include "tim.h"
+#include "usart.h"
 
 //-----------------------------------------------------------------------------------------------
 
@@ -52,10 +53,8 @@ static Svf _CCM_ filter;
 //static Freeverb rev1;	// Freeverb (stereo) : 100kB in RAM
 static MiniFreeverb rev _CCM_; // Mini Freeverb (mono) : 23kB in RAM
 
-static const uint8_t instr_code[] = { 0x09, 0x19, 0x29, 0x39, 0x49, 0x59, 0xA9,
-		0xB9, 0xC9 };
-static constexpr size_t number_of_instr = sizeof(instr_code)
-		/ sizeof(instr_code[0]);
+static const uint8_t instr_code[] = { 0x09, 0x19, 0x29, 0x39, 0x49, 0x59, 0xA9, 0xB9, 0xC9 };
+static constexpr size_t number_of_instr = sizeof(instr_code) / sizeof(instr_code[0]);
 
 /*----------------------------------------------------------------------------------------------*/
 void samplePlayersRandomInit() {
@@ -109,6 +108,10 @@ void InterpretKey(uint8_t key, uint8_t keycode) {
 
 		switch (key) {
 
+		case '&':
+			uart_IT_Test();
+			break;
+
 		case 'c':							// Beginning of a multi key command
 			multikey = true;
 			feedChar(key);
@@ -116,14 +119,12 @@ void InterpretKey(uint8_t key, uint8_t keycode) {
 
 		case '(':
 			source_gain *= 1.1f;
-			printf("Source volume = %d \r\n",
-					static_cast<uint16_t>(source_gain * 100));
+			printf("Source volume = %d \r\n", static_cast<uint16_t>(source_gain * 100));
 			break;
 
 		case ')':
 			source_gain *= 0.9f;
-			printf("Source volume = %d \r\n",
-					static_cast<uint16_t>(source_gain * 100));
+			printf("Source volume = %d \r\n", static_cast<uint16_t>(source_gain * 100));
 			break;
 
 		case '*':
@@ -289,7 +290,8 @@ void InterpretKey(uint8_t key, uint8_t keycode) {
 				seq.ModifySpeed(0.95f);
 				printf("Speed up !\r\n");
 
-			} else if (keycode == 80) {	// right arrow
+			}
+			else if (keycode == 80) {	// right arrow
 
 				seq.ModifySpeed(1.05f);
 				printf("Slow down !\r\n");
@@ -312,42 +314,50 @@ void InterpretEvent(MIDIevent *ev) {
 			adsr1.Retrigger(true);
 			adsr1_gate = true;
 
-		} else if ((ev->type) == 0xB9) {	// NoteOn on cable 11
+		}
+		else if ((ev->type) == 0xB9) {	// NoteOn on cable 11
 
 			synBD.SetAccent((ev->data3) / 127.f);
 			synBD.Trig();
 
-		} else if ((ev->type) == 0xC9) {	// NoteOn on cable 12
+		}
+		else if ((ev->type) == 0xC9) {	// NoteOn on cable 12
 
 			snare.SetAmp((ev->data3) / 127.f);
 			snare.Trig();
 
-		} else if ((ev->type) == 0x09) {	// NoteOn on cable 0
+		}
+		else if ((ev->type) == 0x09) {	// NoteOn on cable 0
 
 			sp[0].SetAmp((ev->data3) / 127.f);
 			sp[0].Trig();
 
-		} else if ((ev->type) == 0x19) {	// NoteOn on cable 1
+		}
+		else if ((ev->type) == 0x19) {	// NoteOn on cable 1
 
 			sp[1].SetAmp((ev->data3) / 127.f);
 			sp[1].Trig();
 
-		} else if ((ev->type) == 0x29) {	// NoteOn on cable 2
+		}
+		else if ((ev->type) == 0x29) {	// NoteOn on cable 2
 
 			sp[2].SetAmp((ev->data3) / 127.f);
 			sp[2].Trig();
 
-		} else if ((ev->type) == 0x39) {	// NoteOn on cable 3
+		}
+		else if ((ev->type) == 0x39) {	// NoteOn on cable 3
 
 			sp[3].SetAmp((ev->data3) / 127.f);
 			sp[3].Trig();
 
-		} else if ((ev->type) == 0x49) {	// NoteOn on cable 4
+		}
+		else if ((ev->type) == 0x49) {	// NoteOn on cable 4
 
 			sp[4].SetAmp((ev->data3) / 127.f);
 			sp[4].Trig();
 
-		} else if ((ev->type) == 0x59) {	// NoteOn on cable 5
+		}
+		else if ((ev->type) == 0x59) {	// NoteOn on cable 5
 
 			sp[5].SetAmp((ev->data3) / 127.f);
 			sp[5].Trig();
@@ -398,8 +408,7 @@ void MakeSound(uint16_t *buf, uint16_t length) //
 		auto z4 = sp[4].Process();
 		auto z5 = sp[5].Process();
 
-		y = source_gain * (y0 + y2 * 2.f + y3 + z0 + z1 + z2 + z3 + z4 + z5)
-				/ 10.f;
+		y = source_gain * (y0 + y2 * 2.f + y3 + z0 + z1 + z2 + z3 + z4 + z5) / 10.f;
 
 		y = 0.5f * y + 0.5f * rev.process(y);
 
@@ -432,8 +441,7 @@ void MakeSound(uint16_t *buf, uint16_t length) //
 
 /*----------------------------------------------------------------------------------------------*/
 void PrintALine(void) {
-	printf(
-			"--------------------------------------------------------------------------------\r\n");
+	printf("--------------------------------------------------------------------------------\r\n");
 
 }
 

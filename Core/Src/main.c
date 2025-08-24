@@ -130,8 +130,7 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-	while (1)
-	{
+	while (1) {
     /* USER CODE END WHILE */
     MX_USB_HOST_Process();
 
@@ -220,8 +219,7 @@ void Error_Handler(void)
 	__disable_irq();
 	/* Turn red LED on */
 	BSP_LED_On(LED5);
-	while (1)
-	{
+	while (1) {
 	}
   /* USER CODE END Error_Handler_Debug */
 }
