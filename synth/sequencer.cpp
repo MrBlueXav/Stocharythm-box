@@ -12,6 +12,7 @@
 #include "objectpool.hpp"
 #include "rng.h"
 #include "tim.h"
+#include "usart.h"
 
 #include <stdio.h>
 #include <cmath>
@@ -53,7 +54,7 @@ void EventSequencer::RandomizeVelo() {
 /*---------------------------------------------------------------------------------------------*/
 void EventSequencer::Quantize(uint16_t div) {
 
-	auto step = (loop_len_ / (float)(div));
+	auto step = (loop_len_ / (float) (div));
 	for (auto ev : event_list_) {
 		auto pos = static_cast<uint32_t>(std::round(((ev->position) / step)) * std::round(step));
 		if (pos >= loop_len_)
@@ -96,23 +97,24 @@ void EventSequencer::CreateEvents(uint16_t ev_nb) {
 /*---------------------------------------------------------------------------------------------*/
 void EventSequencer::DeleteEvents(uint16_t ev_nb) {
 
-	if (event_list_.empty() || ev_nb == 0) return;
+	if (event_list_.empty() || ev_nb == 0)
+		return;
 
 	while (ev_nb-- > 0 && !event_list_.empty()) {
 
-	        size_t index = GetRandomInteger(0, event_list_.size() - 1);
+		size_t index = GetRandomInteger(0, event_list_.size() - 1);
 
-	        // Avancer jusqu’à l’élément choisi
-	        auto it = event_list_.begin();
-	        std::advance(it, index);
+		// Avancer jusqu’à l’élément choisi
+		auto it = event_list_.begin();
+		std::advance(it, index);
 
-	        // Libérer l’objet dans le pool
-	        pool.free(*it);
+		// Libérer l’objet dans le pool
+		pool.free(*it);
 
-	        // Enlever le pointeur de la liste
-	        it = event_list_.erase(it);
-	        event_counter_--;
-	    }
+		// Enlever le pointeur de la liste
+		it = event_list_.erase(it);
+		event_counter_--;
+	}
 }
 
 /*---------------------------------------------------------------------------------------------*/
@@ -156,14 +158,13 @@ void EventSequencer::AddRegularPattern(uint16_t ev_nb, int inst) {
 
 	if (inst >= 0 && inst < SP_VOICE_NB) {
 
-		auto step = static_cast<uint16_t>(std::round(
-				loop_len_ / (float) (ev_nb)));
+		auto step = static_cast<uint16_t>(std::round(loop_len_ / (float) (ev_nb)));
 		auto shift = GetRandomInteger(0, step - 1);
 
 		for (int i = 0; i < ev_nb; i++) {
 			auto v = GetRandomInteger(MINI_VELO, MIDI_MAXi);
 			auto t = i * step + shift;
-			auto ev = pool.allocate(t , 16 * inst + 9, 3, 4, v);
+			auto ev = pool.allocate(t, 16 * inst + 9, 3, 4, v);
 			Add(ev);
 		}
 		TimeSort();
@@ -195,15 +196,13 @@ void EventSequencer::ModifySpeed(float coef) {
 	if (len <= max_len_ && len >= 10) {
 		loop_len_ = len;
 		for (auto ev : event_list_) {
-			ev->position =
-					static_cast<uint32_t>(std::round(ev->position * coef));
+			ev->position = static_cast<uint32_t>(std::round(ev->position * coef));
 		}
 	}
 }
 
 /*---------------------------------------------------------------------------------------------*/
-void EventSequencer::AddOneMidiEvent(uint32_t position, uint8_t type,
-		uint8_t data1, uint8_t data2, uint8_t data3) {
+void EventSequencer::AddOneMidiEvent(uint32_t position, uint8_t type, uint8_t data1, uint8_t data2, uint8_t data3) {
 
 	if (event_counter_ < max_event_) {
 		auto ev = pool.allocate(position, type, data1, data2, data3);
@@ -267,16 +266,17 @@ void EventSequencer::DisplayPattern() {
 	if (event_list_.empty()) {
 		printf("Loop is empty ! \r\n");
 
-	} else {
-		printf(">>>>>>>  Number of Events : %u\r\n", event_counter_);
+	}
+	else {
+		uart_printf(">>>>>>>  Number of Events : %u\r\n", event_counter_);
 		for (auto ev : event_list_) {
 			if (ev == nullptr) {
 				printf("Event : null pointer ! \r\n");
 				continue;
 			}
-			printf("Event : position = %" PRIu32
-			" || type = %#04X || data1 = %u || data2 = %u || data3 = %u ||\r\n",
-					ev->position, ev->type, ev->data1, ev->data2, ev->data3);
+			uart_printf("Event : position = %" PRIu32
+			" || type = %#04X || data1 = %u || data2 = %u || data3 = %u ||\r\n", ev->position, ev->type, ev->data1,
+					ev->data2, ev->data3);
 		}
 	}
 	PrintALine();
@@ -285,17 +285,17 @@ void EventSequencer::DisplayPattern() {
 /*---------------------------------------------------------------------------------------------*/
 void EventSequencer::DisplayStatus() {
 
-	printf("/////////// Sequencer status : ////////////\r\n");
-	printf("// Seq is running : %d \r\n", isRunning);
-	printf("// Seq is in automode : %d \r\n", livingmode);
-	printf("// Seq is recording : %d \r\n", isRecording);
-	printf("// Sample rate = %ld\r\n", static_cast<uint32_t>(sample_rate_));
-	printf("// Resolution = %d  sample ticks.\r\n", resolution_);
-	printf("// Loop length = %ld  seq ticks.\r\n", loop_len_);
-	printf("// Maximum loop length = %ld  seq ticks.\r\n", max_len_);
-	printf("// Maximum number of events = %d .\r\n", max_event_);
-	printf("// Number of registered events = %d .\r\n", event_counter_);
-	printf("////////////\r\n");
+	uart_printf("/////////// Sequencer status : ////////////\r\n");
+	uart_printf("// Seq is running : %d \r\n", isRunning);
+	uart_printf("// Seq is in automode : %d \r\n", livingmode);
+	uart_printf("// Seq is recording : %d \r\n", isRecording);
+	uart_printf("// Sample rate = %ld\r\n", static_cast<uint32_t>(sample_rate_));
+	uart_printf("// Resolution = %d  sample ticks.\r\n", resolution_);
+	uart_printf("// Loop length = %ld  seq ticks.\r\n", loop_len_);
+	uart_printf("// Maximum loop length = %ld  seq ticks.\r\n", max_len_);
+	uart_printf("// Maximum number of events = %d .\r\n", max_event_);
+	uart_printf("// Number of registered events = %d .\r\n", event_counter_);
+	uart_printf("////////////\r\n");
 }
 
 /*---------------------------------------------------------------------------------------------*/
