@@ -19,6 +19,8 @@
 #include "audio_play.h"
 #include "daisysp.h"
 #include "MiniFreeverb.h"
+#include "freeverb_stm32.hpp"
+#include "stereo.hpp"
 #include "wave_data.h"
 #include "SamplePlayer.h"
 #include "rng.h"
@@ -43,15 +45,18 @@ static float source_gain _CCM_;
 
 static WhiteNoise _CCM_ w_noise;
 static float wnoiseVol _CCM_;
-static SyntheticBassDrum synBD _CCM_;
+static SamplePlayer kick _CCM_;
 static SamplePlayer snare _CCM_;
+//static SamplePlayer kick _CCM_;
 static SamplePlayer sp[SP_VOICE_NB] _CCM_;
 static Adsr _CCM_ adsr1;
 static bool _CCM_ adsr1_gate;
 static Svf _CCM_ filter;
 
 //static Freeverb rev1;	// Freeverb (stereo) : 100kB in RAM
-static MiniFreeverb rev _CCM_; // Mini Freeverb (mono) : 23kB in RAM
+//static MiniFreeverb rev _CCM_; // Mini Freeverb (mono) : 23kB in RAM
+static FreeverbStereoSTM32 rvb _CCM_;
+static InputChannel mixer[9] _CCM_;
 
 static const uint8_t instr_code[] = { 0x09, 0x19, 0x29, 0x39, 0x49, 0x59, 0xA9, 0xB9, 0xC9 };
 static constexpr size_t number_of_instr = sizeof(instr_code) / sizeof(instr_code[0]);
@@ -70,14 +75,20 @@ void samplePlayersRandomInit() {
 /*----------------------------------------------------------------------------------------------*/
 void SoundGeneratorInit(void) {
 
-	source_gain = 13.f;
+	source_gain = 1.f;
 	wnoiseVol = 1.0f;
 	multikey = false;
 
 	w_noise.Init();
-	synBD.Init(sample_rate);
+	kick.Init(sample_rate, Fat_Kick, Fat_Kick_len);
 	snare.Init(sample_rate, Snare_808, Snare_808_len);
 	samplePlayersRandomInit();
+
+	rvb.init();
+	rvb.setWetDry(0.08f);
+	rvb.setRoomSize(0.72f);
+	rvb.setDamp(0.28f);
+	rvb.setWidth(1.0f);
 
 	adsr1.Init(sample_rate);
 	adsr1_gate = false;
@@ -221,7 +232,7 @@ void InterpretKey(uint8_t key, uint8_t keycode) {
 			break;
 
 		case 'h':
-			synBD.Trig();
+			kick.Trig();
 			if (seq.isRecording)
 				seq.AddOneEventNow(0xB9);
 			break;
@@ -317,8 +328,8 @@ void InterpretEvent(MIDIevent *ev) {
 		}
 		else if ((ev->type) == 0xB9) {	// NoteOn on cable 11
 
-			synBD.SetAccent((ev->data3) / 127.f);
-			synBD.Trig();
+			kick.SetAmp((ev->data3) / 127.f);
+			kick.Trig();
 
 		}
 		else if ((ev->type) == 0xC9) {	// NoteOn on cable 12
@@ -385,11 +396,10 @@ void MakeSound(uint16_t *buf, uint16_t length) //
 		{
 	uint16_t pos;
 	uint16_t *outp;
-	float y = 0;
+	//float y = 0;
 	float yL, yR;
-
+	float mL, mR;
 	uint16_t valueL, valueR;
-
 	outp = buf;
 
 	for (pos = 0; pos < length; pos++) {
@@ -399,8 +409,9 @@ void MakeSound(uint16_t *buf, uint16_t length) //
 		/*--- Generate waveforms ---*/
 
 		auto y0 = w_noise.Process() * adsr1.Process(adsr1_gate) * wnoiseVol;
-		auto y2 = synBD.Process();
-		auto y3 = snare.Process();
+		//auto y1 = 0.0f;
+		auto y1 = kick.Process();
+		auto y2 = snare.Process();
 		auto z0 = sp[0].Process();
 		auto z1 = sp[1].Process();
 		auto z2 = sp[2].Process();
@@ -408,11 +419,29 @@ void MakeSound(uint16_t *buf, uint16_t length) //
 		auto z4 = sp[4].Process();
 		auto z5 = sp[5].Process();
 
-		y = source_gain * (y0 + y2 * 2.f + y3 + z0 + z1 + z2 + z3 + z4 + z5) / 10.f;
+		mixer[0] = {z0, source_gain, -0.7f};
+		mixer[1] = {z1, source_gain, -0.5f};
+		mixer[2] = {z2, source_gain, -0.3f};
+		mixer[3] = {z3, source_gain, 0.3f};
+		mixer[4] = {z4, source_gain, 0.5f};
+		mixer[5] = {z5, source_gain, 0.7f};
+		mixer[6] = {y0, source_gain, -0.1f};
+		mixer[7] = {y1, source_gain, 0.f};
+		mixer[8] = {y2, source_gain, 0.1f};
 
-		y = 0.5f * y + 0.5f * rev.process(y);
+		mixStereo(mixer, 9, mL, mR);
 
-		yL = yR = y;
+//		mL *= source_gain;
+//		mR *= source_gain;
+
+		//y = source_gain * (y0 + y1 + y2 + z0 + z1 + z2 + z3 + z4 + z5) / 10.f;
+
+//		y = 0.5f * y + 0.5f * rev.process(y);
+
+//		yL = mL;
+//		yR = mR;
+		rvb.process(mL, mR, yL, yR);
+		//yL = yR = y;
 
 		/*--- clipping ---*/
 		yL = (yL > 1.0f) ? 1.0f : yL; //clip too loud left samples

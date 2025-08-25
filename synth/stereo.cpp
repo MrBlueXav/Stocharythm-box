@@ -60,8 +60,8 @@ void mixStereo(const InputChannel *inputs, int count,
 
     for (int i = 0; i < count; ++i) {
         float pan = inputs[i].pan;
-        if (pan < -1.0f) pan = -1.0f;
-        if (pan >  1.0f) pan =  1.0f;
+//        if (pan < -1.0f) pan = -1.0f;
+//        if (pan >  1.0f) pan =  1.0f;
 
         float mix = (pan + 1.0f) * 0.5f;
         float gainL = std::sqrt(1.0f - mix);

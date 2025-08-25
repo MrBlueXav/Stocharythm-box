@@ -13,7 +13,7 @@ Work In Progress !!
 **Features** :  
 9 voices at the moment :  
 - 6 sample players which can access to 41 famous short samples (800kB)  
-- 1 Synthetic Bass Drum  (DaisySP/ Emilie Gillet)  
+- 1 sampled kick (no more because too greedy : Synthetic Bass Drum  (DaisySP/ Emilie Gillet))
 - 1 white noise with ADSR  
 - 1 808 snare  
 
@@ -27,12 +27,12 @@ You can also do live recording !
 Many debug messages through UART (Pin PA2). Please configure your serial port terminal to ISO-8859-15 encoding.    
 
 To improve :  
-[ ] noise during UART transmissions  
-[ ] add stereo placement  
+[x] noise during UART transmissions  
+[x] add stereo placement  
 [ ] make debug messages optional  
 [ ] remove clicks at the end of some samples  
 [ ] mute/unmute instruments  
-[ ] delete instrument events in loop  
+[x] delete instrument events in loop  
 [x] more LED indicators  
 
 - - - - 

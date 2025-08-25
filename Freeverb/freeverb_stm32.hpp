@@ -2,242 +2,189 @@
  * freeverb_stm32.hpp
  *
  *  Created on: Aug 25, 2025
- *      Author: XavSab
+ *      Author: Jezar + ChatGPT
  */
 
 #pragma once
-// Freeverb minimal optimisé pour STM32F4 (pas de STL, buffers statiques)
-// - compile en C++11 ou plus
-// - prérequis : -mfpu=fpv4-sp-d16 -mfloat-abi=hard (pour utiliser la FPU)
-// - pour réduire la RAM, définir REDUCED_MODE avant inclusion.
+// Freeverb stéréo "réaliste" pour STM32F4 (Cortex-M4F)
+// - Pas de STL / allocations dynamiques
+// - L/R décorrelés (+23 samples) + crossfeed via 'width'
+// - Paramètres : wet/dry, roomSize, damp, width
+// Flags conseillés : -O3 -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard
 
-#include <cstring> // memset
-#include <cmath>   // std::sqrt, facultatif si tu ne l'utilises pas
+#include <cstring>
+#include <cstdint>
 
-#define REDUCED_MODE    // décommenter pour version allégée (moins de RAM)
+// Décommente pour une version plus compacte en RAM (légère perte de densité)
+#define FREEVERB_REDUCED
 
-class FreeverbSTM32 {
+#define FREEVERB_ANTI_DENORMAL 1
+
+class FreeverbStereoSTM32 {
 public:
-    FreeverbSTM32() {
-        setRoomSize(0.5f);
-        setDamp(0.2f);
-        setWetDry(0.3f);
-        init();
-    }
+    FreeverbStereoSTM32() { defaultParams(); setupBuffers(); clearState(); }
 
-    // call once after allocation (or at startup)
-    void init() {
-        // clear all buffers and indexes
-        std::memset(this, 0, sizeof(*this)); // simple et sûr ici car pas d'objets non-POD
-        // set parameters again because memset cleared them
-        setRoomSize(roomSize);
-        setDamp(damp);
-        setWetDry(wet);
-        updateFeedback();
+    void init() {                      // à appeler si tu veux réinitialiser
+        defaultParams();
+        setupBuffers();
+        clearState();
     }
 
     // Réglages
-    void setRoomSize(float v) {
-        roomSize = clamp01(v);
-        updateFeedback();
-    }
-    void setDamp(float v) { damp = clamp01(v); }
-    void setWetDry(float wetRatio) {
-        wet = clamp01(wetRatio);
-        dry = 1.0f - wet;
-    }
+    void setWetDry(float wetRatio) { wet = clamp01(wetRatio); dry = 1.0f - wet; updateWetMix(); }
+    void setRoomSize(float v)      { roomSize = clamp01(v); updateFeedback(); }
+    void setDamp(float v)          { damp = clamp01(v); }
+    void setWidth(float v)         { width = clamp01(v); updateWetMix(); }  // 0=mono, 1=large
 
-    // Traitement par échantillon (float)
-    // inL/inR : entrées stéréo (float)
-    // outL/outR : sorties stéréo
+    // Traitement par échantillon
     inline void process(float inL, float inR, float &outL, float &outR) {
-        // Excitation mono (comme dans Freeverb original)
-        float input = 0.5f * (inL + inR);
-
-#ifdef REDUCED_MODE
-        // Réduction : 4 combs / 2 allpasses par canal
-        float accL = 0.0f, accR = 0.0f;
-        for (int i = 0; i < 4; ++i) {
-            accL += combL[i].process(input, combTuningL[i], damp, feedback);
-            accR += combR[i].process(input, combTuningR[i], damp, feedback);
-        }
-        for (int i = 0; i < 2; ++i) {
-            accL = allpassL[i].process(accL, allpassTuningL[i]);
-            accR = allpassR[i].process(accR, allpassTuningR[i]);
-        }
+#if FREEVERB_ANTI_DENORMAL
+        static uint32_t seed = 0x12345678u;
+        seed = 1664525u * seed + 1013904223u;
+        const float anti = ((seed >> 9) & 1) ? 1.0e-20f : -1.0e-20f;
 #else
-        // Version complète : 8 combs / 4 allpasses par canal
-        float accL = 0.0f, accR = 0.0f;
-        for (int i = 0; i < 8; ++i) {
-            accL += combL[i].process(input, combTuningL[i], damp, feedback);
-            accR += combR[i].process(input, combTuningR[i], damp, feedback);
-        }
-        for (int i = 0; i < 4; ++i) {
-            accL = allpassL[i].process(accL, allpassTuningL[i]);
-            accR = allpassR[i].process(accR, allpassTuningR[i]);
-        }
+        const float anti = 0.0f;
 #endif
+        // Excitation mono (comme Freeverb)
+        const float input = 0.5f * (inL + inR) + anti;
 
-        // mix wet/dry with original input channels
-        outL = dry * inL + wet * accL;
-        outR = dry * inR + wet * accR;
+        float accL = 0.0f, accR = 0.0f;
+
+        // 8 (ou 4 en reduced) peignes par canal
+        for (int i = 0; i < COMB_COUNT; ++i) {
+            accL += combL[i].process(input, damp, feedback);
+            accR += combR[i].process(input, damp, feedback);
+        }
+        // 4 (ou 2) allpass en série
+        for (int i = 0; i < ALLPASS_COUNT; ++i) {
+            accL = allpassL[i].process(accL);
+            accR = allpassR[i].process(accR);
+        }
+
+        // Sortie : crossfeed contrôlé par width (wet1/wet2, modèle Freeverb)
+        // wet1 = wet*(width/2 + 0.5), wet2 = wet*((1-width)/2)
+        const float wetL = wet1 * accL + wet2 * accR;
+        const float wetR = wet1 * accR + wet2 * accL;
+
+        // Pad léger pour éviter clipping si wet/dry élevés
+        const float pad = 0.95f;
+        outL = dry * inL + pad * wetL;
+        outR = dry * inR + pad * wetR;
+    }
+
+    // Traitement par bloc (recommandé en DMA/I2S)
+    inline void processBlock(const float* inL, const float* inR,
+                             float* outL, float* outR, int n) {
+        for (int i = 0; i < n; ++i) process(inL[i], inR[i], outL[i], outR[i]);
     }
 
 private:
-    // ---------- utilities ----------
-    static inline float clamp01(float v) {
-        if (v <= 0.0f) return 0.0f;
-        if (v >= 1.0f) return 1.0f;
-        return v;
-    }
+#ifndef FREEVERB_REDUCED
+    // Tunings Freeverb originaux (L) + décalage R = +23 samples
+    static constexpr int COMB_COUNT    = 8;
+    static constexpr int ALLPASS_COUNT = 4;
 
-    // ---------- Comb filter (structure sans allocation dynamique) ----------
-    struct CombStatic {
-        // buffer declared as max size per comb instance (size chosen per tuning)
-        // We'll allocate each buffer with the exact size in the class by using distinct members.
-        float *buf = nullptr; // pointer to buffer (points into the large static arrays below)
-        int bufSize = 0;
-        int idx = 0;
-        float filterstore = 0.0f;
+    static constexpr int combTuningL[COMB_COUNT]     = {1116,1188,1277,1356,1422,1491,1557,1617};
+    static constexpr int combTuningR[COMB_COUNT]     = {1116+23,1188+23,1277+23,1356+23,1422+23,1491+23,1557+23,1617+23};
 
-        inline float process(float inp, int size, float damp, float feedback) {
-            // size is guaranteed <= bufSize
-            float output = buf[idx];
-            filterstore = (output * (1.0f - damp)) + (filterstore * damp);
-            buf[idx] = inp + filterstore * feedback;
+    static constexpr int allpassTuningL[ALLPASS_COUNT]= {556,441,341,225};
+    static constexpr int allpassTuningR[ALLPASS_COUNT]= {556+23,441+23,341+23,225+23};
+#else
+    // Version réduite RAM (reste stéréo/décorrelée)
+    static constexpr int COMB_COUNT    = 4;
+    static constexpr int ALLPASS_COUNT = 2;
+
+    static constexpr int combTuningL[COMB_COUNT]      = {400,470,530,590};
+    static constexpr int combTuningR[COMB_COUNT]      = {423,493,553,613};
+    static constexpr int allpassTuningL[ALLPASS_COUNT]= {120, 89};
+    static constexpr int allpassTuningR[ALLPASS_COUNT]= {143,112};
+#endif
+
+    struct Comb {
+        float* buf; int size; int idx; float filterStore;
+        inline void attach(float* b, int s){ buf=b; size=s; idx=0; filterStore=0.0f; }
+        inline float process(float x, float damp, float feedback){
+            const float y = buf[idx];
+            // lowpass dans la boucle de feedback (damp)
+            filterStore = y * (1.0f - damp) + filterStore * damp;
+            buf[idx] = x + filterStore * feedback;
             if (++idx >= size) idx = 0;
-            return output;
+            return y;
+        }
+    };
+    struct Allpass {
+        float* buf; int size; int idx; static constexpr float fb = 0.5f;
+        inline void attach(float* b, int s){ buf=b; size=s; idx=0; }
+        inline float process(float x){
+            const float w = buf[idx];
+            const float y = -x + w;
+            buf[idx] = x + w * fb;
+            if (++idx >= size) idx = 0;
+            return y;
         }
     };
 
-    // ---------- Allpass filter ----------
-    struct AllpassStatic {
-        float *buf = nullptr;
-        int bufSize = 0;
-        int idx = 0;
-        float feedback = 0.5f;
-
-        inline float process(float inp, int size) {
-            float bufout = buf[idx];
-            float output = -inp + bufout;
-            buf[idx] = inp + bufout * feedback;
-            if (++idx >= size) idx = 0;
-            return output;
-        }
-    };
-
-    // ---------- Delay tunings (original Freeverb-like) ----------
-#ifndef REDUCED_MODE
-    static constexpr int combTuningL[8] = {1116,1188,1277,1356,1422,1491,1557,1617};
-    static constexpr int combTuningR[8] = {1116+23,1188+23,1277+23,1356+23,1422+23,1491+23,1557+23,1617+23};
-
-    static constexpr int allpassTuningL[4] = {556,441,341,225};
-    static constexpr int allpassTuningR[4] = {556+23,441+23,341+23,225+23};
+    // Sommes exactes pour allouer au plus juste
+#ifndef FREEVERB_REDUCED
+    static constexpr int sumCombL = combTuningL[0]+combTuningL[1]+combTuningL[2]+combTuningL[3]
+                                  + combTuningL[4]+combTuningL[5]+combTuningL[6]+combTuningL[7];
+    static constexpr int sumCombR = combTuningR[0]+combTuningR[1]+combTuningR[2]+combTuningR[3]
+                                  + combTuningR[4]+combTuningR[5]+combTuningR[6]+combTuningR[7];
+    static constexpr int sumAllL  = allpassTuningL[0]+allpassTuningL[1]+allpassTuningL[2]+allpassTuningL[3];
+    static constexpr int sumAllR  = allpassTuningR[0]+allpassTuningR[1]+allpassTuningR[2]+allpassTuningR[3];
 #else
-    // Reduced sizes (approximate, keep small memory footprint)
-    static constexpr int combTuningL[4] = { 400, 470, 530, 590 };
-    static constexpr int combTuningR[4] = { 423, 493, 553, 613 }; // +23 offset
-    static constexpr int allpassTuningL[2] = { 120, 89 };
-    static constexpr int allpassTuningR[2] = { 143, 112 };
+    static constexpr int sumCombL = combTuningL[0]+combTuningL[1]+combTuningL[2]+combTuningL[3];
+    static constexpr int sumCombR = combTuningR[0]+combTuningR[1]+combTuningR[2]+combTuningR[3];
+    static constexpr int sumAllL  = allpassTuningL[0]+allpassTuningL[1];
+    static constexpr int sumAllR  = allpassTuningR[0]+allpassTuningR[1];
 #endif
 
-    // ---------- static buffers (declared as raw arrays to avoid heap) ----------
-#ifndef REDUCED_MODE
-    // For the full version we need to store buffers for 8 combs L/R and 4 allpass L/R
-    // We declare flat arrays and then point each CombStatic/AllpassStatic to slices.
-    // Sizes computed from tuning arrays above.
-    static constexpr int combCount = 8;
-    static constexpr int allpassCount = 4;
-    // compute sum sizes at compile-time (C++11 limitation: do it manually)
-    // We reserve the max size per comb as the largest tuning + 1 (safety)
-    static constexpr int MAX_COMB_SIZE = 1645; // just above largest (1617+23)
-    static constexpr int MAX_ALLPASS_SIZE = 600; // above 579
-    // Allocate contiguous memory for simplicity:
-    float combBufStorageL[combCount * MAX_COMB_SIZE];
-    float combBufStorageR[combCount * MAX_COMB_SIZE];
-    float allpassBufStorageL[allpassCount * MAX_ALLPASS_SIZE];
-    float allpassBufStorageR[allpassCount * MAX_ALLPASS_SIZE];
-#else
-    static constexpr int combCount = 4;
-    static constexpr int allpassCount = 2;
-    static constexpr int MAX_COMB_SIZE = 640;
-    static constexpr int MAX_ALLPASS_SIZE = 160;
-    float combBufStorageL[combCount * MAX_COMB_SIZE];
-    float combBufStorageR[combCount * MAX_COMB_SIZE];
-    float allpassBufStorageL[allpassCount * MAX_ALLPASS_SIZE];
-    float allpassBufStorageR[allpassCount * MAX_ALLPASS_SIZE];
-#endif
+    // Stockage brut (en .bss)
+    float combBufL[sumCombL];
+    float combBufR[sumCombR];
+    float allpassBufL[sumAllL];
+    float allpassBufR[sumAllR];
 
-    // ---------- Comb and Allpass instances ----------
-    CombStatic combL[combCount];
-    CombStatic combR[combCount];
-    AllpassStatic allpassL[allpassCount];
-    AllpassStatic allpassR[allpassCount];
+    // Instances
+    Comb    combL[COMB_COUNT];
+    Comb    combR[COMB_COUNT];
+    Allpass allpassL[ALLPASS_COUNT];
+    Allpass allpassR[ALLPASS_COUNT];
 
-    // ---------- parameters ----------
-    float roomSize = 0.5f;
-    float damp = 0.2f;
-    float feedback = 0.0f;
-    float wet = 0.3f;
-    float dry = 0.7f;
+    // Paramètres
+    float roomSize, damp, feedback;
+    float wet, dry, width;   // width contrôle le crossfeed
+    float wet1, wet2;        // mix L/R stéréo dérivés de wet & width
 
-    // ---------- helpers ----------
-    void updateFeedback() {
-        // freeverb-ish mapping
-        feedback = roomSize * 0.28f + 0.7f;
+    // Helpers
+    static inline float clamp01(float v){ return v<0.f?0.f:(v>1.f?1.f:v); }
+    inline void updateFeedback(){ feedback = roomSize * 0.28f + 0.70f; }
+    inline void updateWetMix(){
+        // Modèle Freeverb : wet1 = wet*(width/2 + 0.5), wet2 = wet*((1-width)/2)
+        wet1 = wet * (0.5f * width + 0.5f);
+        wet2 = wet * (0.5f * (1.0f - width));
     }
-
-    // set up pointers into the storage arrays and zero them
-    // must be called once (or after a memset that cleared pointers)
-    void setupBuffers() {
-#ifndef REDUCED_MODE
-        // clear storages
-        std::memset(combBufStorageL, 0, sizeof(combBufStorageL));
-        std::memset(combBufStorageR, 0, sizeof(combBufStorageR));
-        std::memset(allpassBufStorageL, 0, sizeof(allpassBufStorageL));
-        std::memset(allpassBufStorageR, 0, sizeof(allpassBufStorageR));
-
-        for (int i = 0; i < combCount; ++i) {
-            combL[i].buf = &combBufStorageL[i * MAX_COMB_SIZE];
-            combL[i].bufSize = MAX_COMB_SIZE;
-            combR[i].buf = &combBufStorageR[i * MAX_COMB_SIZE];
-            combR[i].bufSize = MAX_COMB_SIZE;
-        }
-        for (int i = 0; i < allpassCount; ++i) {
-            allpassL[i].buf = &allpassBufStorageL[i * MAX_ALLPASS_SIZE];
-            allpassL[i].bufSize = MAX_ALLPASS_SIZE;
-            allpassR[i].buf = &allpassBufStorageR[i * MAX_ALLPASS_SIZE];
-            allpassR[i].bufSize = MAX_ALLPASS_SIZE;
-        }
-#else
-        std::memset(combBufStorageL, 0, sizeof(combBufStorageL));
-        std::memset(combBufStorageR, 0, sizeof(combBufStorageR));
-        std::memset(allpassBufStorageL, 0, sizeof(allpassBufStorageL));
-        std::memset(allpassBufStorageR, 0, sizeof(allpassBufStorageR));
-
-        for (int i = 0; i < combCount; ++i) {
-            combL[i].buf = &combBufStorageL[i * MAX_COMB_SIZE];
-            combL[i].bufSize = MAX_COMB_SIZE;
-            combR[i].buf = &combBufStorageR[i * MAX_COMB_SIZE];
-            combR[i].bufSize = MAX_COMB_SIZE;
-        }
-        for (int i = 0; i < allpassCount; ++i) {
-            allpassL[i].buf = &allpassBufStorageL[i * MAX_ALLPASS_SIZE];
-            allpassL[i].bufSize = MAX_ALLPASS_SIZE;
-            allpassR[i].buf = &allpassBufStorageR[i * MAX_ALLPASS_SIZE];
-            allpassR[i].bufSize = MAX_ALLPASS_SIZE;
-        }
-#endif
+    inline void defaultParams(){
+        roomSize = 0.5f; damp = 0.2f; wet = 0.3f; dry = 0.7f; width = 1.0f;
+        updateFeedback(); updateWetMix();
     }
-
-    // ensure buffers are setup before first use
-    // call from init() if you used memset(this,..) in init
-    // we call it lazily on first process (simple)
-    bool buffersInitialized = false;
-    inline void ensureBuffers() {
-        if (!buffersInitialized) {
-            setupBuffers();
-            buffersInitialized = true;
-        }
+    inline void clearState(){
+        std::memset(combBufL,    0, sizeof(combBufL));
+        std::memset(combBufR,    0, sizeof(combBufR));
+        std::memset(allpassBufL, 0, sizeof(allpassBufL));
+        std::memset(allpassBufR, 0, sizeof(allpassBufR));
+        for (int i=0;i<COMB_COUNT;i++){ combL[i].idx=0; combL[i].filterStore=0.0f;
+                                        combR[i].idx=0; combR[i].filterStore=0.0f; }
+        for (int i=0;i<ALLPASS_COUNT;i++){ allpassL[i].idx=0; allpassR[i].idx=0; }
+    }
+    inline void setupBuffers(){
+        int off = 0;
+        for (int i=0;i<COMB_COUNT;i++){ combL[i].attach(combBufL + off, combTuningL[i]); off += combTuningL[i]; }
+        off = 0;
+        for (int i=0;i<COMB_COUNT;i++){ combR[i].attach(combBufR + off, combTuningR[i]); off += combTuningR[i]; }
+        off = 0;
+        for (int i=0;i<ALLPASS_COUNT;i++){ allpassL[i].attach(allpassBufL + off, allpassTuningL[i]); off += allpassTuningL[i]; }
+        off = 0;
+        for (int i=0;i<ALLPASS_COUNT;i++){ allpassR[i].attach(allpassBufR + off, allpassTuningR[i]); off += allpassTuningR[i]; }
     }
 };
