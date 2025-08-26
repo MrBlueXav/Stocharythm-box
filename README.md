@@ -13,12 +13,13 @@ Work In Progress !!
 **Features** :  
 9 voices at the moment :  
 - 6 sample players which can access to 41 famous short samples (800kB)  
-- 1 sampled kick (no more because too greedy : Synthetic Bass Drum  (DaisySP/ Emilie Gillet))
+- 1 sampled kick (no more Synthetic Bass Drum  (DaisySP/ Emilie Gillet) because too greedy...)
 - 1 white noise with ADSR  
 - 1 808 snare  
 
-FX : simple reverb based on Freeverb (MiniFreeverb.h)  
-Mono output.  
+Adjustable pan for each instrument.  
+FX : simple stereo reverb based on Freeverb (in freeverb_stm32.hpp).  
+Stereo output.  
 
 The sequencer is not step based. You define a loop duration and call for sound events which are randomly dispatched in the loop.  
 These are so-called "stocharythms".  You can however quantize their position on a defined grid.
@@ -67,10 +68,10 @@ To improve :
 
 *Multi key commands* :  press a sequence of keys and submit it with `enter`  
 They must all start with letter `c`, no space, just comma to separate numbers.  
-- `cl` : 		cl<*n*\>	:	Sets the loop duration at *n* x 0.1 seconds (ex : `cl20` for 2 seconds)  
-- `ca` :		ca<*n*\>	:	Creates *n* random events for each instrument  (ex : `ca4`)  
-- `cr` :		cr<*n*\>,<*instr*\>	:	Creates *n* regular events in the loop for instrument *instr*  (ex : `cr1,5` )  
-- `cn` :		cn<*n*\>	:	Creates *n* events  (ex : `cn10` )  
+- `cl` : cl<*n*\>	:	Sets the loop duration at *n* x 0.1 seconds (ex : `cl20` for 2 seconds)  
+- `ca` : ca<*n*\>	:	Creates *n* random events for each instrument  (ex : `ca4`)  
+- `cr` : cr<*n*\>,<*instr*\>	:	Creates *n* regular events in the loop for instrument *instr*  (ex : `cr1,5` )  
+- `cn` : cn<*n*\>	:	Creates *n* events  (ex : `cn10` )  
 - `cq` : cq<*n*\> : Quantize events on a n steps loop (original position is lost)  
 
 - - - - 
@@ -86,7 +87,7 @@ It should be easily tailored for other powerful STM32 mcu (cortex M33, M4, M7, M
 
 
 There are several Git branches :  
-- **Stocharythm**    
+- **Stocharythm** : main one   
 - Simple_demo : minimal synth platform  
 
 

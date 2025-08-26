@@ -47,15 +47,15 @@ static WhiteNoise _CCM_ w_noise;
 static float wnoiseVol _CCM_;
 static SamplePlayer kick _CCM_;
 static SamplePlayer snare _CCM_;
-//static SamplePlayer kick _CCM_;
 static SamplePlayer sp[SP_VOICE_NB] _CCM_;
 static Adsr _CCM_ adsr1;
 static bool _CCM_ adsr1_gate;
-static Svf _CCM_ filter;
+//static Svf _CCM_ filter;
 
 //static Freeverb rev1;	// Freeverb (stereo) : 100kB in RAM
 //static MiniFreeverb rev _CCM_; // Mini Freeverb (mono) : 23kB in RAM
 static FreeverbStereoSTM32 rvb _CCM_;
+
 static InputChannel mixer[9] _CCM_;
 
 static const uint8_t instr_code[] = { 0x09, 0x19, 0x29, 0x39, 0x49, 0x59, 0xA9, 0xB9, 0xC9 };
@@ -97,7 +97,7 @@ void SoundGeneratorInit(void) {
 	adsr1.SetTime(ADSR_SEG_RELEASE, 0.01f);
 	adsr1.SetSustainLevel(0.f);
 
-	filter.Init(sample_rate);
+	//filter.Init(sample_rate);
 	seq.Init(sample_rate);
 }
 
@@ -470,7 +470,7 @@ void MakeSound(uint16_t *buf, uint16_t length) //
 
 /*----------------------------------------------------------------------------------------------*/
 void PrintALine(void) {
-	printf("--------------------------------------------------------------------------------\r\n");
+	uart_printf("--------------------------------------------------------------------------------\r\n");
 
 }
 

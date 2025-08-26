@@ -38,6 +38,7 @@ public:
 
     // Traitement par échantillon
     inline void process(float inL, float inR, float &outL, float &outR) {
+
 #if FREEVERB_ANTI_DENORMAL
         static uint32_t seed = 0x12345678u;
         seed = 1664525u * seed + 1013904223u;
