@@ -8,7 +8,8 @@
 Funny and strange **drum machine** controlled by any PC USB AZERTY/QWERTY keyboard plugged into the board.  
 You'll need an mini USB B plug to USB A receptacle OTG adapter.  
 The STM32F4 Discovery kit acts as a USB host for the keyboard.  
-To test the synth, flash the board with the ELF binary : **Stocharythm__box__release.elf** (You can use *STM32CubeProgrammer* software).  
+To test the synth, flash the board with the ELF binary : **Stocharythm_box_release.elf** (You can use *STM32CubeProgrammer* software).  
+There are also two long sound tracks in zz_sound_demos folder.  
 
 Work In Progress !!  
 
