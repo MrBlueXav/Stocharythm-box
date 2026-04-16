@@ -50,16 +50,18 @@ static SamplePlayer snare _CCM_;
 static SamplePlayer sp[SP_VOICE_NB] _CCM_;
 static Adsr _CCM_ adsr1;
 static bool _CCM_ adsr1_gate;
-//static Svf _CCM_ filter;
 
 //static Freeverb rev1;	// Freeverb (stereo) : 100kB in RAM
 //static MiniFreeverb rev _CCM_; // Mini Freeverb (mono) : 23kB in RAM
+
 static FreeverbStereoSTM32 rvb _CCM_;
 
 static InputChannel mixer[9] _CCM_;
 
-static const uint8_t instr_code[] = { 0x09, 0x19, 0x29, 0x39, 0x49, 0x59, 0xA9, 0xB9, 0xC9 };
-static constexpr size_t number_of_instr = sizeof(instr_code) / sizeof(instr_code[0]);
+static const uint8_t instr_code[] = { 0x09, 0x19, 0x29, 0x39, 0x49, 0x59, 0xA9,
+		0xB9, 0xC9 };
+static constexpr size_t number_of_instr = sizeof(instr_code)
+		/ sizeof(instr_code[0]);
 
 /*----------------------------------------------------------------------------------------------*/
 void samplePlayersRandomInit() {
@@ -97,7 +99,6 @@ void SoundGeneratorInit(void) {
 	adsr1.SetTime(ADSR_SEG_RELEASE, 0.01f);
 	adsr1.SetSustainLevel(0.f);
 
-	//filter.Init(sample_rate);
 	seq.Init(sample_rate);
 }
 
@@ -130,12 +131,14 @@ void InterpretKey(uint8_t key, uint8_t keycode) {
 
 		case '(':
 			source_gain *= 1.1f;
-			printf("Source volume = %d \r\n", static_cast<uint16_t>(source_gain * 100));
+			printf("Source volume = %d \r\n",
+					static_cast<uint16_t>(source_gain * 100));
 			break;
 
 		case ')':
 			source_gain *= 0.9f;
-			printf("Source volume = %d \r\n", static_cast<uint16_t>(source_gain * 100));
+			printf("Source volume = %d \r\n",
+					static_cast<uint16_t>(source_gain * 100));
 			break;
 
 		case '*':
@@ -295,14 +298,17 @@ void InterpretKey(uint8_t key, uint8_t keycode) {
 			seq.DisplayStatus();
 			break;
 
+		case 'q':
+			seq.Quantize(8);
+			break;
+
 		default:
 			if (keycode == 79) {		// left arrow
 
 				seq.ModifySpeed(0.95f);
 				printf("Speed up !\r\n");
 
-			}
-			else if (keycode == 80) {	// right arrow
+			} else if (keycode == 80) {	// right arrow
 
 				seq.ModifySpeed(1.05f);
 				printf("Slow down !\r\n");
@@ -325,50 +331,42 @@ void InterpretEvent(MIDIevent *ev) {
 			adsr1.Retrigger(true);
 			adsr1_gate = true;
 
-		}
-		else if ((ev->type) == 0xB9) {	// NoteOn on cable 11
+		} else if ((ev->type) == 0xB9) {	// NoteOn on cable 11
 
 			kick.SetAmp((ev->data3) / 127.f);
 			kick.Trig();
 
-		}
-		else if ((ev->type) == 0xC9) {	// NoteOn on cable 12
+		} else if ((ev->type) == 0xC9) {	// NoteOn on cable 12
 
 			snare.SetAmp((ev->data3) / 127.f);
 			snare.Trig();
 
-		}
-		else if ((ev->type) == 0x09) {	// NoteOn on cable 0
+		} else if ((ev->type) == 0x09) {	// NoteOn on cable 0
 
 			sp[0].SetAmp((ev->data3) / 127.f);
 			sp[0].Trig();
 
-		}
-		else if ((ev->type) == 0x19) {	// NoteOn on cable 1
+		} else if ((ev->type) == 0x19) {	// NoteOn on cable 1
 
 			sp[1].SetAmp((ev->data3) / 127.f);
 			sp[1].Trig();
 
-		}
-		else if ((ev->type) == 0x29) {	// NoteOn on cable 2
+		} else if ((ev->type) == 0x29) {	// NoteOn on cable 2
 
 			sp[2].SetAmp((ev->data3) / 127.f);
 			sp[2].Trig();
 
-		}
-		else if ((ev->type) == 0x39) {	// NoteOn on cable 3
+		} else if ((ev->type) == 0x39) {	// NoteOn on cable 3
 
 			sp[3].SetAmp((ev->data3) / 127.f);
 			sp[3].Trig();
 
-		}
-		else if ((ev->type) == 0x49) {	// NoteOn on cable 4
+		} else if ((ev->type) == 0x49) {	// NoteOn on cable 4
 
 			sp[4].SetAmp((ev->data3) / 127.f);
 			sp[4].Trig();
 
-		}
-		else if ((ev->type) == 0x59) {	// NoteOn on cable 5
+		} else if ((ev->type) == 0x59) {	// NoteOn on cable 5
 
 			sp[5].SetAmp((ev->data3) / 127.f);
 			sp[5].Trig();
@@ -391,9 +389,9 @@ void MakeSound(uint16_t *buf, uint16_t length) //
 		/*-------------------------------------------------------------------
 		 * buf : audio buffer pointer which contains frames. One frame is one left 16 bits sample + one right 16 bits sample (32 bits)
 		 * length : number of frames to be computed
-		 *
 		 * ----------------------------------------------------------------------------------------------------------------------------*/
 		{
+
 	uint16_t pos;
 	uint16_t *outp;
 	//float y = 0;
@@ -419,15 +417,15 @@ void MakeSound(uint16_t *buf, uint16_t length) //
 		auto z4 = sp[4].Process();
 		auto z5 = sp[5].Process();
 
-		mixer[0] = {z0, source_gain, -0.7f};
-		mixer[1] = {z1, source_gain, -0.5f};
-		mixer[2] = {z2, source_gain, -0.3f};
-		mixer[3] = {z3, source_gain, 0.3f};
-		mixer[4] = {z4, source_gain, 0.5f};
-		mixer[5] = {z5, source_gain, 0.7f};
-		mixer[6] = {y0, source_gain, -0.1f};
-		mixer[7] = {y1, source_gain, 0.f};
-		mixer[8] = {y2, source_gain, 0.1f};
+		mixer[0] = { z0, source_gain, -0.7f };
+		mixer[1] = { z1, source_gain, -0.5f };
+		mixer[2] = { z2, source_gain, -0.3f };
+		mixer[3] = { z3, source_gain, 0.3f };
+		mixer[4] = { z4, source_gain, 0.5f };
+		mixer[5] = { z5, source_gain, 0.7f };
+		mixer[6] = { y0, source_gain, -0.1f };
+		mixer[7] = { y1, source_gain, 0.f };
+		mixer[8] = { y2, source_gain, 0.1f };
 
 		mixStereo(mixer, 9, mL, mR);
 
@@ -470,7 +468,8 @@ void MakeSound(uint16_t *buf, uint16_t length) //
 
 /*----------------------------------------------------------------------------------------------*/
 void PrintALine(void) {
-	uart_printf("--------------------------------------------------------------------------------\r\n");
+	uart_printf(
+			"--------------------------------------------------------------------------------\r\n");
 
 }
 

@@ -1,12 +1,14 @@
 # Stocharythm Box §§ Bruitenkor ! 
 
-## Another drum machine for STM32F4 Discovery kit
+## A new drum machine for STM32F4 Discovery kit
 ## Electronic free jazz ready !
 
 ![photo](zz_pictures/StocharythmBox_setup.jpg "photo")  
 
-Funny and strange **drum machine** controlled by any PC USB AZERTY/QWERTY keyboard plugged into the board.
+Funny and strange **drum machine** controlled by any PC USB AZERTY/QWERTY keyboard plugged into the board.  
+You'll need an mini USB B plug to USB A receptacle OTG adapter.  
 The STM32F4 Discovery kit acts as a USB host for the keyboard.  
+To test the synth, flash the board with the ELF binary : **Stocharythm__box__release.elf** (You can use *STM32CubeProgrammer* software).  
 
 Work In Progress !!  
 
@@ -31,7 +33,7 @@ To improve :
 [x] noise during UART transmissions  
 [x] add stereo placement  
 [ ] make debug messages optional  
-[ ] remove clicks at the end of some samples  
+[x] remove clicks at the end of some samples  
 [ ] mute/unmute instruments  
 [x] delete instrument events in loop  
 [x] more LED indicators  
@@ -42,8 +44,8 @@ To improve :
 - `+` and `-`   -> final volume (Output DAC)  
 - `(` and `)` or arrows up and down -> source volume  
 - `.`  -> clear loop  
-- `space` -> play/pause sequencer  
-- `!` -> play/stop sequencer  
+- `space` -> play/pause sequencer (toggle)  
+- `!` -> play/stop sequencer (toggle)    
 - left and and right arrows : slow down or speed up  
 - `*` -> start live recording  
 - `/` -> stop live recording  
@@ -59,8 +61,9 @@ To improve :
 - `J` : add 1 white noise event  / `j` : play or record white noise  
 - `K` : add 1 808 snare event   / `k` : play or record snare  
 - `m` : mix up all events in loop  
+- `q` : quantize all events on an 8 steps loop (original position is lost)  
 - `z` : change the 6 samples  
-- `a` : randomize velocities of events at the beginning of each loop  
+- `a` : randomize velocities of events at the beginning of each loop (toggle)  
 - `v` : randomize velocities of all events
 - `s` : display sequencer status  
 - `d` : display list of events in the loop  
@@ -74,9 +77,17 @@ They must all start with letter `c`, no space, just comma to separate numbers.
 - `cn` : cn<*n*\>	:	Creates *n* events  (ex : `cn10` )  
 - `cq` : cq<*n*\> : Quantize events on a n steps loop (original position is lost)  
 
+
+### LED indicators :  
+- Orange : CPU load  (LED3)  
+- Red : Beginning of each loop or error (LED5)  
+- Green : live recording mode ON (LED4)  
+- Blue : USB keyboard is connected (LED6)  
+
+
 - - - - 
 ### Developer notes :
-I'm using STM32CubeIDE (v1.19).  
+I'm using STM32CubeIDE (v2.1.1).  
 This is a configurable project with ioc (STM32CubeMX) and BSP files written in C and C++.  
 It should be easily tailored for other powerful STM32 mcu (cortex M33, M4, M7, M55, ...)  
 

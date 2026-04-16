@@ -14,8 +14,6 @@
 #include "stm32f4_discovery.h"
 #include "stm32f4xx_hal.h"
 #include "stm32f4_discovery_audio.h"
-//#include "soundGen.h"
-//#include "perf.h"
 #include "constants.h"
 #include "bruitenkor.h"
 
@@ -146,38 +144,24 @@ uint8_t _ITCMRAM_ Process_audio(void) {
 	switch (audio_state) {
 	case AUDIO_STATE_PLAYING:
 
-		//BSP_LED_Off(LED3); // CPU load indicator
-
 		/* 1st half buffer played; so fill it and continue playing from bottom*/
 		if (state == BUFFER_OFFSET_HALF) {
-			//cyc_count_reset();
-			BSP_LED_Off(LED3);
 
+			BSP_LED_Off(LED3); // CPU load indicator
 			MakeSound(&audio_buffer[0], AUDIO_BUFFER_SIZE / 4);
 			state = BUFFER_OFFSET_NONE;
-
-			/* Clean Data Cache to update the content of the SRAM */
-			//SCB_CleanDCache_by_Addr((uint32_t*) &buff[0], AUDIO_BUFFER_SIZE / 2);
-			//cyc_count_print();
 			BSP_LED_On(LED3);
 		}
 
 		/* 2nd half buffer played; so fill it and continue playing from top */
 		if (state == BUFFER_OFFSET_FULL) {
-			//cyc_count_reset();
-			BSP_LED_Off(LED3);
 
+			BSP_LED_Off(LED3); // CPU load indicator
 			MakeSound(&audio_buffer[AUDIO_BUFFER_SIZE / 2],
 			AUDIO_BUFFER_SIZE / 4);
 			state = BUFFER_OFFSET_NONE;
-
-			/* Clean Data Cache to update the content of the SRAM */
-			//SCB_CleanDCache_by_Addr((uint32_t*) &buff[AUDIO_BUFFER_SIZE / 2], AUDIO_BUFFER_SIZE / 2);
-			//cyc_count_print();
 			BSP_LED_On(LED3);
 		}
-
-		//BSP_LED_On(LED3);
 
 		break;
 
@@ -201,7 +185,6 @@ uint8_t _ITCMRAM_ Process_audio(void) {
  */
 void BSP_AUDIO_OUT_TransferComplete_CallBack(void) {
 	if (audio_state == AUDIO_STATE_PLAYING) {
-		//BSP_LED_On(LED3);
 		/* allows Process_audio() to refill 2nd part of the buffer  */
 		state = BUFFER_OFFSET_FULL;
 	}

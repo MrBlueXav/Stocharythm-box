@@ -4,8 +4,8 @@
  * @file           : main.c
  * @brief          : Main program body
  ******************************************************************************
- * @attention		SynthF407
- * 					Another synthesizer platform for STM32F407 Discovery Kit board
+ * @attention		Stocharythm Box ## Bruitenkor
+ * 					This is a drum machine and synthesizer platform for STM32F407 Discovery Kit board
  * 					(by STMicroelectronics)
  * 					July 2025
  * 					Xavier Halgand aka MrBlueXav (Github)
