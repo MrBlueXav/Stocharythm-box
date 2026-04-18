@@ -1,26 +1,30 @@
 # Stocharythm Box §§ Bruitenkor ! 
 
-## A new drum machine for STM32F4 Discovery kit
-## Electronic free jazz ready !
+## A new strange drum machine for STM32F4 Discovery kit
+## Electronic free jazz ready or for anything else !
 
 ![photo](zz_pictures/StocharythmBox_setup.jpg "photo")  
 
-Funny and strange **drum machine** controlled by any PC USB AZERTY/QWERTY keyboard plugged into the board.  
+Funny and strange **drum machine** entirely controlled by any PC USB AZERTY/QWERTY keyboard plugged into the board.  
 You'll need an mini USB B plug to USB A receptacle OTG adapter.  
 The STM32F4 Discovery kit acts as a USB host for the keyboard.  
 To test the synth, flash the board with the ELF binary : **Stocharythm_box_release.elf** (You can use *STM32CubeProgrammer* software).  
 There are also two long sound tracks in zz_sound_demos folder.  
+Or listen to :  
+https://polymerickblue.bandcamp.com/track/demo-1-for-stocharythm-box  
+https://polymerickblue.bandcamp.com/track/demo-2-for-stocharythm-box  
 
 Work In Progress !!  
 
 **Features** :  
+
 9 voices at the moment :  
-- 6 sample players which can access to 41 famous short samples (800kB)  
-- 1 sampled kick (no more Synthetic Bass Drum  (DaisySP/ Emilie Gillet) because too greedy...)
+- 6 editable sample players which can access to 41 famous short samples (800kB)  
+- 1 sampled kick  
 - 1 white noise with ADSR  
 - 1 808 snare  
 
-Adjustable pan for each instrument.  
+Adjustable pan for each instrument (set in bruitenkor.cpp).  
 FX : simple stereo reverb based on Freeverb (in freeverb_stm32.hpp).  
 Stereo output.  
 
@@ -29,15 +33,6 @@ These are so-called "stocharythms".  You can however quantize their position on 
 You can also do live recording !  
 
 Many debug messages through UART (Pin PA2). Please configure your serial port terminal to ISO-8859-15 encoding.    
-
-To improve :  
-[x] noise during UART transmissions  
-[x] add stereo placement  
-[ ] make debug messages optional  
-[x] remove clicks at the end of some samples  
-[ ] mute/unmute instruments  
-[x] delete instrument events in loop  
-[x] more LED indicators  
 
 - - - - 
 ### Keyboard control :  
@@ -80,31 +75,45 @@ They must all start with letter `c`, no space, just comma to separate numbers.
 
 
 ### LED indicators :  
-- Orange : CPU load  (LED3)  
-- Red : Beginning of each loop or error (LED5)  
-- Green : live recording mode ON (LED4)  
-- Blue : USB keyboard is connected (LED6)  
+- Orange (LED3) : CPU load    
+- Red (LED5) : Beginning of each loop (blinking) or error (permanent)   
+- Green (LED4) : live recording mode ON   
+- Blue (LED6) : USB keyboard is connected   
 
 
 - - - - 
 ### Developer notes :
-I'm using STM32CubeIDE (v2.1.1).  
+I'm using now STM32CubeIDE (v2.1.1).  
 This is a configurable project with ioc (STM32CubeMX) and BSP files written in C and C++.  
 It should be easily tailored for other powerful STM32 mcu (cortex M33, M4, M7, M55, ...)  
+
+**To improve** :  
+[ ] ad controls for stereo placement  
+[ ] make debug messages optional  
+[ ] add controls for reverb  
+[ ] mute/unmute instruments  
+[x] add stereo placement  
+[x] delete instrument events in loop  
+[x] more LED indicators  
+[x] noise during UART transmissions  
+[x] remove clicks at the end of some samples  
 
 **Keyboard configuration** :  
 - Keyboard layout is in ``azerty_hid_map.h`` (This one is for AZERTY french keyboards, sorry)  
 - For mapping single key functions, in file `bruitenkor.cpp`, modify function : `void InterpretKey(uint8_t key, uint8_t keycode)`  
 - You can define new multi key functions in file ``keyb_command_parser.cpp``, don't forget to fill also the table ``static const Command commandTable[MAX_COMMANDS] = {...}``  
 
+There are two Git branches :  
+- ``Stocharythm`` : main one for this drum machine   
+- ``Simple_demo`` : minimal synth platform  
 
-There are several Git branches :  
-- **Stocharythm** : main one   
-- Simple_demo : minimal synth platform  
+**Memory regions fillings :**  
+Flash (1 MB) : 88 %  
+RAM (128 kB) : 5 %  
+CCMRAM (64 kB) : 33 %  
 
 
-
-
+- - - -  
 <<< By *Xavier Halgand*, Summer 2025 >>>  
 Thanks : Electrosmith/DaisySP, Emilie Gillet, STM32 team, ChatGPT, ...
 
